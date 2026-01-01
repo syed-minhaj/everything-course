@@ -8,6 +8,27 @@
       "when": 1765906235289,
       "tag": "0000_bent_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766777553351,
+      "tag": "0001_sloppy_valkyrie",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767039425595,
+      "tag": "0002_far_vulture",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1767269909462,
+      "tag": "0003_hard_magdalene",
+      "breakpoints": true
     }
   ]
 }
