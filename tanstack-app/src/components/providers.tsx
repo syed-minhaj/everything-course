@@ -6,6 +6,7 @@ import type { ReactNode } from "react"
 
 import { authClient } from "@/lib/auth-client"
 import { google } from "better-auth"
+import { ThemeProvider } from "./theme-provider"
 
 // Create a client
 const queryClient = new QueryClient({
@@ -16,22 +17,24 @@ const queryClient = new QueryClient({
     }
 })
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children , theme }: { children: ReactNode , theme : "light" | "dark"}) {
     const router = useRouter()
     
     return (
-        <QueryClientProvider client={queryClient}>
-            <AuthQueryProvider>
-                <AuthUIProviderTanstack
-                    authClient={authClient}
-                    navigate={(href) => router.navigate({ href })}
-                    replace={(href) => router.navigate({ href, replace: true })}
-                    Link={({ href, ...props }) => <Link to={href} {...props} />}
-                    social={{providers : ["google"]}}
-                >
-                    {children}
-                </AuthUIProviderTanstack>
-            </AuthQueryProvider>
-        </QueryClientProvider>
+        <ThemeProvider theme={theme}>
+            <QueryClientProvider client={queryClient}>
+                <AuthQueryProvider>
+                    <AuthUIProviderTanstack
+                        authClient={authClient}
+                        navigate={(href) => router.navigate({ href })}
+                        replace={(href) => router.navigate({ href, replace: true })}
+                        Link={({ href, ...props }) => <Link to={href} {...props} />}
+                        social={{providers : ["google"]}}
+                    >
+                        {children}
+                    </AuthUIProviderTanstack>
+                </AuthQueryProvider>
+            </QueryClientProvider>
+        </ThemeProvider>
     )
 }

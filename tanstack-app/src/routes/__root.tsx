@@ -1,9 +1,10 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Link, RootRoute, Router, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Providers } from '../components/providers'
-
 import appCss from '../styles.css?url'
+import { getThemeServerFn } from '@/lib/theme'
+import "@fontsource/irish-grover";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -26,13 +27,27 @@ export const Route = createRootRoute({
       },
     ],
   }),
-
+  ssr : true,
+  loader: () => getThemeServerFn(),
+  notFoundComponent: () => {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold">404 - Page Not Found</h1>
+        <p>The page you are looking for does not exist.</p>
+        <Link to="/" className="underline mt-4">Go Home</Link>
+      </div>
+    )
+  },
   shellComponent: RootDocument,
+  
 })
 
+
+
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const theme = Route.useLoaderData()
   return (
-    <html lang="en">
+    <html className={theme}  lang="en">
       <head>
          <meta
             name="viewport"
@@ -50,8 +65,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body>
-        <Providers>
+      <body suppressHydrationWarning>
+        <Providers theme={theme}>
             {children}
         </Providers>
         <TanStackDevtools
