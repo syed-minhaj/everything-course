@@ -10,43 +10,90 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthAuthViewRouteImport } from './routes/auth/$authView'
+import { Route as AppCourseIndexRouteImport } from './routes/app/course/index'
+import { Route as AppCourseCourseIDRouteImport } from './routes/app/course/$courseID'
+import { Route as AppAuthAuthViewRouteImport } from './routes/app/auth/$authView'
+import { Route as AppCourseCourseIDModuleIDRouteImport } from './routes/app/course/$courseID_.$moduleID'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthAuthViewRoute = AuthAuthViewRouteImport.update({
-  id: '/auth/$authView',
-  path: '/auth/$authView',
+const AppCourseIndexRoute = AppCourseIndexRouteImport.update({
+  id: '/app/course/',
+  path: '/app/course/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppCourseCourseIDRoute = AppCourseCourseIDRouteImport.update({
+  id: '/app/course/$courseID',
+  path: '/app/course/$courseID',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAuthAuthViewRoute = AppAuthAuthViewRouteImport.update({
+  id: '/app/auth/$authView',
+  path: '/app/auth/$authView',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCourseCourseIDModuleIDRoute =
+  AppCourseCourseIDModuleIDRouteImport.update({
+    id: '/app/course/$courseID_/$moduleID',
+    path: '/app/course/$courseID/$moduleID',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth/$authView': typeof AuthAuthViewRoute
+  '/app/auth/$authView': typeof AppAuthAuthViewRoute
+  '/app/course/$courseID': typeof AppCourseCourseIDRoute
+  '/app/course': typeof AppCourseIndexRoute
+  '/app/course/$courseID/$moduleID': typeof AppCourseCourseIDModuleIDRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/$authView': typeof AuthAuthViewRoute
+  '/app/auth/$authView': typeof AppAuthAuthViewRoute
+  '/app/course/$courseID': typeof AppCourseCourseIDRoute
+  '/app/course': typeof AppCourseIndexRoute
+  '/app/course/$courseID/$moduleID': typeof AppCourseCourseIDModuleIDRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/auth/$authView': typeof AuthAuthViewRoute
+  '/app/auth/$authView': typeof AppAuthAuthViewRoute
+  '/app/course/$courseID': typeof AppCourseCourseIDRoute
+  '/app/course/': typeof AppCourseIndexRoute
+  '/app/course/$courseID_/$moduleID': typeof AppCourseCourseIDModuleIDRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/$authView'
+  fullPaths:
+    | '/'
+    | '/app/auth/$authView'
+    | '/app/course/$courseID'
+    | '/app/course'
+    | '/app/course/$courseID/$moduleID'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/$authView'
-  id: '__root__' | '/' | '/auth/$authView'
+  to:
+    | '/'
+    | '/app/auth/$authView'
+    | '/app/course/$courseID'
+    | '/app/course'
+    | '/app/course/$courseID/$moduleID'
+  id:
+    | '__root__'
+    | '/'
+    | '/app/auth/$authView'
+    | '/app/course/$courseID'
+    | '/app/course/'
+    | '/app/course/$courseID_/$moduleID'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthAuthViewRoute: typeof AuthAuthViewRoute
+  AppAuthAuthViewRoute: typeof AppAuthAuthViewRoute
+  AppCourseCourseIDRoute: typeof AppCourseCourseIDRoute
+  AppCourseIndexRoute: typeof AppCourseIndexRoute
+  AppCourseCourseIDModuleIDRoute: typeof AppCourseCourseIDModuleIDRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +105,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/$authView': {
-      id: '/auth/$authView'
-      path: '/auth/$authView'
-      fullPath: '/auth/$authView'
-      preLoaderRoute: typeof AuthAuthViewRouteImport
+    '/app/course/': {
+      id: '/app/course/'
+      path: '/app/course'
+      fullPath: '/app/course'
+      preLoaderRoute: typeof AppCourseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/course/$courseID': {
+      id: '/app/course/$courseID'
+      path: '/app/course/$courseID'
+      fullPath: '/app/course/$courseID'
+      preLoaderRoute: typeof AppCourseCourseIDRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/auth/$authView': {
+      id: '/app/auth/$authView'
+      path: '/app/auth/$authView'
+      fullPath: '/app/auth/$authView'
+      preLoaderRoute: typeof AppAuthAuthViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/course/$courseID_/$moduleID': {
+      id: '/app/course/$courseID_/$moduleID'
+      path: '/app/course/$courseID/$moduleID'
+      fullPath: '/app/course/$courseID/$moduleID'
+      preLoaderRoute: typeof AppCourseCourseIDModuleIDRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +138,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthAuthViewRoute: AuthAuthViewRoute,
+  AppAuthAuthViewRoute: AppAuthAuthViewRoute,
+  AppCourseCourseIDRoute: AppCourseCourseIDRoute,
+  AppCourseIndexRoute: AppCourseIndexRoute,
+  AppCourseCourseIDModuleIDRoute: AppCourseCourseIDModuleIDRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
