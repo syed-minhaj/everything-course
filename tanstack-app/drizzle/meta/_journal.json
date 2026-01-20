@@ -29,6 +29,27 @@
       "when": 1767269909462,
       "tag": "0003_hard_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768191425729,
+      "tag": "0004_daily_deathbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1768191600144,
+      "tag": "0005_tricky_millenium_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768913023288,
+      "tag": "0006_tiresome_quasar",
+      "breakpoints": true
     }
   ]
 }
