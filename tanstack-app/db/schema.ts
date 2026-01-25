@@ -61,6 +61,7 @@ export const quickQuizzes = pgTable("quick_quizzes", {
 });
 
 export const userToQuickQuizzesPassed = pgTable("user_to_quick_quizzes_passed", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
         .references(() => user.id)
         .notNull(),
@@ -70,6 +71,7 @@ export const userToQuickQuizzesPassed = pgTable("user_to_quick_quizzes_passed", 
 });
 
 export const userToPrimaryMissionsPassed = pgTable("user_to_primary_missions_passed", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
         .references(() => user.id)
         .notNull(),

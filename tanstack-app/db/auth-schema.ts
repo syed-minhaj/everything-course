@@ -74,6 +74,27 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const userToCourseCreated = pgTable("user_to_course_created", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+        .references(() => user.id)
+        .notNull(),
+    courseId: text("course_id")
+        .references(() => courses.id)
+        .notNull(),
+});
+
+export const userToCourseTaken = pgTable("user_to_course_taken", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+        .references(() => user.id)
+        .notNull(),
+    courseId: text("course_id")
+        .references(() => courses.id)
+        .notNull(),
+});
+
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
