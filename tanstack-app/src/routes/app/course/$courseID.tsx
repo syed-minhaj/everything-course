@@ -1,11 +1,13 @@
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { db } from '@/lib/drizzle'
-import { createFileRoute, Link, Outlet, redirect, useLoaderData } from '@tanstack/react-router'
+import { createFileRoute,  redirect } from '@tanstack/react-router'
 import { createServerFn, useServerFn } from '@tanstack/react-start'
-import { courses } from 'db/schema'
-import { eq } from 'drizzle-orm'
 import {z} from "zod";
+import {  getRequestHeaders } from "@tanstack/react-start-server";
+import { auth } from '@/lib/auth'
+import { userToCourseTaken } from 'db/auth-schema'
+import { useState } from 'react'
+
 
 type course = {
     id: string;
@@ -35,9 +37,25 @@ const getCoursee = createServerFn()
         return course
 })
 
+const joinCourseFn = createServerFn()
+    .inputValidator(z.object({courseID : courseIDSchema , moduleID : z.string()}))
+    .handler(async({data}) => {
+        const session = await auth.api.getSession({ headers: getRequestHeaders()});
+        if (!session || !session.user) {
+            throw redirect({to : "/app/auth/$authView" , params : {authView : "login"}})
+        }
+        const userHasTakenCourse = await db.query.userToCourseTaken.findFirst({
+            where : (userToCourseTaken , {eq}) => {eq(userToCourseTaken.userId , session.user.id) && eq(userToCourseTaken.courseId , data.courseID)}
+        })
+        if (userHasTakenCourse) {
+            throw redirect({to : "/app/course/$courseID/$moduleID" , params : {courseID : data.courseID , moduleID : data.moduleID}})
+        }
+        await db.insert(userToCourseTaken).values({userId : session.user.id , courseId : data.courseID})
+        throw redirect({to : "/app/course/$courseID/$moduleID" , params : {courseID : data.courseID , moduleID : data.moduleID}})
+    })
+
 
 export const Route = createFileRoute('/app/course/$courseID')({
-    
     loader:  async({ params }) => await getCoursee({ data : params.courseID }),
     component: RouteComponent,
     pendingComponent: () => <div>Loading Course...</div>,
@@ -46,8 +64,15 @@ export const Route = createFileRoute('/app/course/$courseID')({
 
 function RouteComponent() {
     const course = Route.useLoaderData();
-    const courseID = course.id;
+    const joinCourse = useServerFn(joinCourseFn)
+    const [isLoading, setIsLoading] = useState(false)
     
+    async function join(data : {courseID : string , moduleID : string}) {
+        setIsLoading(true)
+        await joinCourse({data})
+        setIsLoading(false)
+    }
+
     return (
         <div className='bg-bg1  '>
             <div className='w-full h-screen relative '>
@@ -56,8 +81,8 @@ function RouteComponent() {
                     <div className='flex flex-col gap-8 items-center justify-center'>
                         <h2 className='font-irish-grover text-2xl sm:text-4xl text-center text-white '>{course.courseTitle}</h2>
                         <div className='flex flex-row gap-6 text-white text-lg font-bold'>
-                            <Link to="/app/course/$courseID/$moduleID" params={{courseID , moduleID : course.modules[0].id }}
-                                className='py-4 px-6 rounded-sm  bg-[#3A10E5]' >Join Coure</Link>
+                            <button onClick={() => join({courseID: course.id , moduleID : course.modules[0].id})} 
+                                className='py-4 px-6 rounded-sm  bg-[#3A10E5] disabled:opacity-65' disabled={isLoading} >Join Coure</button>
                             <a href="#detail" className='py-4 px-6 rounded-sm  bg-[#919191]'>Learn More</a>
                         </div>
                     </div>
