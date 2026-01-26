@@ -3,6 +3,7 @@ import { getThemeServerFn } from '@/lib/theme'
 import { Link } from '@tanstack/react-router'
 import { Providers } from '../../components/providers'
 import { Toaster } from '@/components/ui/sonner'
+import Navbar from '@/components/navbar'
 
 export const Route = createFileRoute('/app')({
     component: RouteComponent,
@@ -28,6 +29,7 @@ function RouteComponent() {
     return (
         <Providers theme={theme}>
             <body  className={theme + " h-screen  flex flex-col "} >
+                {showNavbar && <Navbar />}
                 <Outlet  />
                 <Toaster position='top-center'/>
             </body>
