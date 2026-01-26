@@ -74,15 +74,6 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const userToCourseCreated = pgTable("user_to_course_created", {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
-        .references(() => user.id)
-        .notNull(),
-    courseId: text("course_id")
-        .references(() => courses.id)
-        .notNull(),
-});
 
 export const userToCourseTaken = pgTable("user_to_course_taken", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -94,12 +85,22 @@ export const userToCourseTaken = pgTable("user_to_course_taken", {
         .notNull(),
 });
 
+export const userToCourseTakenRelations = relations(userToCourseTaken, ({ one }) => ({
+    user: one(user, {
+        fields: [userToCourseTaken.userId],
+        references: [user.id],
+    }),
+    course: one(courses, {
+        fields: [userToCourseTaken.courseId],
+        references: [courses.id],
+    }),
+}));
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   coursesCreated: many(courses),
-  coursesTaken: many(courses),
+  coursesTaken: many(userToCourseTaken),
   quickQuizzesPassed: many(userToQuickQuizzesPassed),
   primaryMissionsPassed: many(userToPrimaryMissionsPassed),
 }));

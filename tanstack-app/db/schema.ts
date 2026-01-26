@@ -7,7 +7,7 @@ import {
     jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import {user} from  "./auth-schema";
+import {user, userToCourseTaken} from  "./auth-schema";
 
 /* ================= COURSE ================= */
 export const courses = pgTable("courses", {
@@ -87,7 +87,7 @@ export const courseRelations = relations(courses, ({ many , one}) => ({
         fields: [courses.createrId],
         references: [user.id],
     }),
-    student : many(user),
+    student : many(userToCourseTaken),
 }));
 
 export const moduleRelations = relations(modules, ({ many, one }) => ({
