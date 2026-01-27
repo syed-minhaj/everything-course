@@ -3,23 +3,11 @@ import { db } from '@/lib/drizzle'
 import { createFileRoute,  redirect } from '@tanstack/react-router'
 import { createServerFn, useServerFn } from '@tanstack/react-start'
 import {z} from "zod";
-import {  getRequestHeaders } from "@tanstack/react-start-server";
+import { getRequestHeaders } from "@tanstack/react-start-server";
 import { auth } from '@/lib/auth'
 import { userToCourseTaken } from 'db/auth-schema'
 import { useState } from 'react'
 
-
-type course = {
-    id: string;
-    courseTitle: string;
-    introSummary: string;
-    modules: {
-        id: string;
-        title: string;
-        courseId: number;
-        conceptualDeepDive: string;
-    }[];
-}
 
 const courseIDSchema = z.string()
 const getCoursee = createServerFn()
