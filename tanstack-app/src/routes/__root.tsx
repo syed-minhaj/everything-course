@@ -1,7 +1,6 @@
 import { HeadContent, Link, RootRoute, Router, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { Providers } from '../components/providers'
 import appCss from '../styles.css?url'
 import { getThemeServerFn } from '@/lib/theme'
 import "@fontsource/irish-grover";
@@ -65,10 +64,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body suppressHydrationWarning>
-        <Providers theme={theme}>
+      <body suppressHydrationWarning >
             {children}
-        </Providers>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
