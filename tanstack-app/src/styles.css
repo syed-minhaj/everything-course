@@ -162,3 +162,8 @@
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
 }
+
+button:hover , a:hover {
+    opacity : 0.75
+}
+
