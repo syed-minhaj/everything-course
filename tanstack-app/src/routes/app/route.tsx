@@ -28,7 +28,7 @@ function RouteComponent() {
     })
     return (
         <Providers theme={theme}>
-            <body  className={theme + " h-screen  flex flex-col "} >
+            <body  className={theme + " h-screen  flex flex-col w-dvw overflow-x-hidden"} >
                 {showNavbar && <Navbar />}
                 <Outlet  />
                 <Toaster position='top-center'/>
