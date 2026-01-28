@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, primaryKey } from "drizzle-orm/pg-core";
 import { courses , userToQuickQuizzesPassed, userToPrimaryMissionsPassed } from "./schema";
 
 export const user = pgTable("user", {
@@ -76,14 +76,11 @@ export const verification = pgTable(
 
 
 export const userToCourseTaken = pgTable("user_to_course_taken", {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
-        .references(() => user.id)
-        .notNull(),
-    courseId: text("course_id")
-        .references(() => courses.id)
-        .notNull(),
-});
+    userId: text("user_id").references(() => user.id).notNull(),
+    courseId: text("course_id").references(() => courses.id).notNull(),
+}, (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.courseId] }),
+}));
 
 export const userToCourseTakenRelations = relations(userToCourseTaken, ({ one }) => ({
     user: one(user, {

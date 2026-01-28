@@ -5,6 +5,7 @@ import {
     varchar,
     integer,
     jsonb,
+    primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import {user, userToCourseTaken} from  "./auth-schema";
@@ -61,24 +62,26 @@ export const quickQuizzes = pgTable("quick_quizzes", {
 });
 
 export const userToQuickQuizzesPassed = pgTable("user_to_quick_quizzes_passed", {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
         .references(() => user.id)
         .notNull(),
     quickQuizId: text("quick_quiz_id")
         .references(() => quickQuizzes.id)
         .notNull()
-});
+}, (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.quickQuizId] }),
+}));
 
 export const userToPrimaryMissionsPassed = pgTable("user_to_primary_missions_passed", {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
         .references(() => user.id)
         .notNull(),
     primaryMissionId: text("primary_mission_id")
         .references(() => primaryMissions.id)
         .notNull()
-});
+}, (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.primaryMissionId] }),
+}));
 
 /* ================= RELATIONS ================= */
 export const courseRelations = relations(courses, ({ many , one}) => ({
@@ -128,7 +131,7 @@ export const userToQuickQuizzesPassedRelations = relations(userToQuickQuizzesPas
         fields: [userToQuickQuizzesPassed.userId],
         references: [user.id],
     }),
-    quiz: one(quickQuizzes, {
+    quickQuizzes: one(quickQuizzes, {
         fields: [userToQuickQuizzesPassed.quickQuizId],
         references: [quickQuizzes.id],
     }),
@@ -139,7 +142,7 @@ export const userToPrimaryMissionsPassedRelations = relations(userToPrimaryMissi
         fields: [userToPrimaryMissionsPassed.userId],
         references: [user.id],
     }),
-    mission: one(primaryMissions, {
+    primaryMissions: one(primaryMissions, {
         fields: [userToPrimaryMissionsPassed.primaryMissionId],
         references: [primaryMissions.id],
     }),
