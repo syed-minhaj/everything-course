@@ -70,7 +70,7 @@ function RouteComponent() {
                         <h2 className='font-irish-grover text-2xl sm:text-4xl text-center text-white '>{course.courseTitle}</h2>
                         <div className='flex flex-row gap-6 text-white text-lg font-bold'>
                             <button onClick={() => join({courseID: course.id , moduleID : course.modules[0].id})} 
-                                className='py-4 px-6 rounded-sm  bg-[#3A10E5] disabled:opacity-65' disabled={isLoading} >Join Coure</button>
+                                className='py-4 px-6 rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Join Coure</button>
                             <a href="#detail" className='py-4 px-6 rounded-sm  bg-[#919191]'>Learn More</a>
                         </div>
                     </div>
