@@ -163,7 +163,7 @@
     background: var(--primary);
 }
 
-button:hover , a:hover {
+button:not(:disabled):hover , a:not(:disabled):hover {
     opacity : 0.75
 }
 
