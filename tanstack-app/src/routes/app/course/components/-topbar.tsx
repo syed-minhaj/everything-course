@@ -33,8 +33,10 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
                 navigate({to : "/app/course"})
                 return
             }
+            const indexofCurrentModule = modules.findIndex((m) => m.id === moduleID)
+            const nextModule = modules[indexofCurrentModule + 1]
             navigate({to : "/app/course/$courseID/$moduleID" 
-                , reloadDocument: true , params : {courseID : modules[0].courseId , moduleID : String(Number(moduleID) + 1) }
+                , reloadDocument: true , params : {courseID : modules[0].courseId , moduleID : nextModule.id }
             })
         }
     }

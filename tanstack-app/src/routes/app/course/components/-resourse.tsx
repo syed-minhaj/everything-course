@@ -4,7 +4,7 @@ import { z } from "zod"
 import { externalResources } from "db/schema"
 import { eq } from "drizzle-orm"
 import { use, useEffect, useState } from "react"
-import ResourseItem from "./resourseItem"
+import ResourseItem from "./-resourseItem"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
 
@@ -20,7 +20,7 @@ const getResources = createServerFn().inputValidator(z.string()).handler(async (
     const resources = await db.query.externalResources.findMany({
         where: eq(externalResources.moduleId , data),
     })
-    console.log(resources)
+    //console.log(resources)
     return resources
 })
 
