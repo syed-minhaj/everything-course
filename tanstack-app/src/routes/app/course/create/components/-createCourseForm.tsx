@@ -115,7 +115,7 @@ export default function CreateCourseForm() {
                     onClick={handleNext} 
                     className="px-8 font-semibold"
                 >
-                    Next
+                    Create
                 </Button>
             </div>
 
