@@ -22,7 +22,7 @@ export const courses = pgTable("courses", {
 export const modules = pgTable("modules", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     courseId: text("course_id")
-        .references(() => courses.id)
+        .references(() => courses.id , { onDelete: "cascade" })
         .notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     conceptualDeepDive: text("conceptual_deep_dive").notNull(),
@@ -32,7 +32,7 @@ export const modules = pgTable("modules", {
 export const externalResources = pgTable("external_resources", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     moduleId: text("module_id")
-        .references(() => modules.id)
+        .references(() => modules.id , { onDelete: "cascade" })
         .notNull(),
     type: varchar("type", { length: 50 }).notNull(), // article | youtube | podcast
     title: varchar("title", { length: 255 }).notNull(),
@@ -43,7 +43,7 @@ export const externalResources = pgTable("external_resources", {
 export const primaryMissions = pgTable("primary_missions", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     moduleId: text("module_id")
-        .references(() => modules.id)
+        .references(() => modules.id , { onDelete: "cascade" })
         .notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     instructions: text("instructions").notNull(),
@@ -54,7 +54,7 @@ export const primaryMissions = pgTable("primary_missions", {
 export const quickQuizzes = pgTable("quick_quizzes", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     moduleId: text("module_id")
-        .references(() => modules.id)
+        .references(() => modules.id , { onDelete: "cascade" })
         .notNull(),
     question: text("question").notNull(),
     options: jsonb("options").$type<string[]>().notNull(),
@@ -63,10 +63,10 @@ export const quickQuizzes = pgTable("quick_quizzes", {
 
 export const userToQuickQuizzesPassed = pgTable("user_to_quick_quizzes_passed", {
     userId: text("user_id")
-        .references(() => user.id)
+        .references(() => user.id , { onDelete: "cascade" })
         .notNull(),
     quickQuizId: text("quick_quiz_id")
-        .references(() => quickQuizzes.id)
+        .references(() => quickQuizzes.id , { onDelete: "cascade" })
         .notNull()
 }, (t) => ({
     pk: primaryKey({ columns: [t.userId, t.quickQuizId] }),
@@ -74,10 +74,10 @@ export const userToQuickQuizzesPassed = pgTable("user_to_quick_quizzes_passed", 
 
 export const userToPrimaryMissionsPassed = pgTable("user_to_primary_missions_passed", {
     userId: text("user_id")
-        .references(() => user.id)
+        .references(() => user.id , { onDelete: "cascade" })
         .notNull(),
     primaryMissionId: text("primary_mission_id")
-        .references(() => primaryMissions.id)
+        .references(() => primaryMissions.id , { onDelete: "cascade" })
         .notNull()
 }, (t) => ({
     pk: primaryKey({ columns: [t.userId, t.primaryMissionId] }),

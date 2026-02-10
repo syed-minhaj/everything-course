@@ -76,8 +76,10 @@ export const verification = pgTable(
 
 
 export const userToCourseTaken = pgTable("user_to_course_taken", {
-    userId: text("user_id").references(() => user.id).notNull(),
-    courseId: text("course_id").references(() => courses.id).notNull(),
+    userId: text("user_id").references(() => user.id , { onDelete: "cascade" })
+        .notNull(),
+    courseId: text("course_id").references(() => courses.id , { onDelete: "cascade" })
+        .notNull(),
 }, (t) => ({
     pk: primaryKey({ columns: [t.userId, t.courseId] }),
 }));
