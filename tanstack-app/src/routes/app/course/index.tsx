@@ -30,7 +30,7 @@ function CourseSection(){
         queryFn: getCourses,
     })
     return (
-        <div className='w-11/12 mx-auto flex flex-col gap-4 pt-8 '>
+        <div className='w-11/12 mx-auto flex flex-col gap-4 py-8 '>
             {data.map((course : course) => (
                 <CoursePreview key={course.id} course={course} />
             ))}
