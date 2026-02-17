@@ -13,7 +13,7 @@ function ModeToggle() {
 
     return (
         <button onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === "dark" ? <Moon /> : <Sun />}
+            {theme === "light" ? <Moon /> : <Sun />}
         </button>
     );
 }
