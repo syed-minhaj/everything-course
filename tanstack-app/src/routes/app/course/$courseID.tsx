@@ -33,7 +33,7 @@ const joinCourseFn = createServerFn()
             throw redirect({to : "/app/auth/$authView" , params : {authView : "login"}})
         }
         const userHasTakenCourse = await db.query.userToCourseTaken.findFirst({
-            where : (userToCourseTaken , {eq}) => {eq(userToCourseTaken.userId , session.user.id) && eq(userToCourseTaken.courseId , data.courseID)}
+            where : (userToCourseTaken , {eq,and}) => and(eq(userToCourseTaken.userId , session.user.id) , eq(userToCourseTaken.courseId , data.courseID) )
         })
         if (userHasTakenCourse) {
             throw redirect({to : "/app/course/$courseID/$moduleID" , params : {courseID : data.courseID , moduleID : data.moduleID}})
