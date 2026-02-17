@@ -25,6 +25,7 @@ export function Providers({ children , theme }: { children: ReactNode , theme : 
             <QueryClientProvider client={queryClient}>
                 <AuthQueryProvider>
                     <AuthUIProviderTanstack
+                        basePath="/app/auth"
                         authClient={authClient}
                         navigate={(href) => router.navigate({ href })}
                         replace={(href) => router.navigate({ href, replace: true })}
