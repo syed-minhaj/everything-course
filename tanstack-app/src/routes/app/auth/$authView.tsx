@@ -14,7 +14,7 @@ function RouteComponent() {
 
     return (
         <main className="container mx-auto flex grow flex-col items-center justify-center gap-3 self-center p-4 md:p-6">
-            <AuthView pathname={authView} />
+            <AuthView pathname={authView} redirectTo="/app/course" />
 
             <p className={cn(["callback", "sign-out"].includes(authView) && "hidden", "text-muted-foreground text-xs")}>
                 Powered by{" "}
