@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "/app/course",
+  "start_url": "./app/course",
   "display": "standalone",
   "theme_color": "#6468f0",
   "background_color": "#20242D"
