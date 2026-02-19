@@ -1,26 +1,39 @@
-import { useRouter } from "@tanstack/react-router";
-import { createContext, type PropsWithChildren, use, useState } from "react";
-import { setThemeServerFn, type T as Theme } from "@/lib/theme";
+import { createContext, useContext, useEffect, useState, PropsWithChildren,} from "react";
 
-type ThemeContextVal = { theme: Theme; setTheme: (val: Theme) => void };
-type Props = PropsWithChildren<{ theme: Theme }>;
+type Theme = "light" | "dark";
 
-const ThemeContext = createContext<ThemeContextVal | null>(null);
+const ThemeContext = createContext<{
+    theme: Theme;
+    setTheme: (t: Theme) => void;
+} | null>(null);
 
-export function ThemeProvider({ children, theme:Itheme }: Props) {
-  const router = useRouter();
-  const [theme, setThemeS] = useState(Itheme);
+const KEY = "_preferred-theme";
 
-  function setTheme(val: Theme) {
-    setThemeS(val)
-    setThemeServerFn({ data: val }).then(() => router.invalidate());
-  }
+export function ThemeProvider({ children }: PropsWithChildren) {
+    const [theme, setTheme] = useState<Theme>("dark");
 
-  return <ThemeContext value={{ theme, setTheme }}>{children}</ThemeContext>;
+    useEffect(() => {
+        const stored = localStorage.getItem(KEY) as Theme | null;
+        if (stored) setTheme(stored);
+    }, []);
+
+    useEffect(() => {
+        const root = document.documentElement;
+        if (theme === "dark") root.classList.add("dark");
+        else root.classList.remove("dark");
+
+        localStorage.setItem(KEY, theme);
+    }, [theme]);
+
+    return (
+        <ThemeContext.Provider value={{ theme, setTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    );
 }
 
 export function useTheme() {
-  const val = use(ThemeContext);
-  if (!val) throw new Error("useTheme called outside of ThemeProvider!");
-  return val;
+    const ctx = useContext(ThemeContext);
+    if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
+    return ctx;
 }
