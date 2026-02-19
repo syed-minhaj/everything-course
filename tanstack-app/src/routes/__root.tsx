@@ -16,7 +16,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Everything Course',
       },
     ],
     links: [
@@ -30,7 +30,7 @@ export const Route = createRootRoute({
   loader: () => getThemeServerFn(),
   notFoundComponent: () => {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="bg-bg1 flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-2xl font-bold">404 - Page Not Found</h1>
         <p>The page you are looking for does not exist.</p>
         <Link to="/" className="underline mt-4">Go Home</Link>
@@ -62,6 +62,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             media="(prefers-color-scheme: dark)"
             content="oklch(0.145 0 0)"
         />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
         <HeadContent />
       </head>
       <body suppressHydrationWarning >
