@@ -83,7 +83,7 @@ export default function CreateCourseForm() {
             </div>
 
             {/* Depth Level Field */}
-            <div className="space-y-4 w-md">
+            <div className="space-y-4 w-md max-w-full">
                 <div className="flex justify-between items-end">
                     <Label className="text-sm font-semibold tracking-tight">
                         Depth Level
