@@ -11,10 +11,10 @@ import { toast } from "sonner";
 export interface DiscoveryData {
     topic: string;
     userContext: string;
-    depthLevel: string;
+    depthLevel: typeof DEPTH_LABELS[number];
 }
 
-const DEPTH_LABELS = ["Surface Level", "Standard", "Deep Dive", "Academic"];
+const DEPTH_LABELS = ["Surface Level", "Standard", "Deep Dive", "Academic"] as const;
 
 export default function CreateCourseForm() {
     const a  = useServerFn(generateCourse)
