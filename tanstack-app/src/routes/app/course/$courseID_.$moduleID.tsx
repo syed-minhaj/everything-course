@@ -51,7 +51,7 @@ function RouteComponent() {
                     <ResizablePanel className='overflow-y-auto!' defaultSize={50}>
                         <Content moduleID={moduleID} course={course}/>
                     </ResizablePanel>
-                    <ResizableHandle className=' bg-black/50 dark:bg-white/50' />
+                    <ResizableHandle className=' bg-black/50 ' />
                     <ResizablePanel className={`${course.isStudent && 'overflow-y-auto! '} relative  `} defaultSize={50}>
                         {!course.isStudent && 
                             <div className=" backdrop-blur-md absolute top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center text-lg font-medium">
