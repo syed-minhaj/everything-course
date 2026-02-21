@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { generateCourse } from "@/server/course";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { redirect } from "@tanstack/react-router";
 
 export interface DiscoveryData {
     topic: string;
@@ -39,9 +40,21 @@ export default function CreateCourseForm() {
 
     const handleNext = async() => {
         setCreatingCourse(true)
-        const { error } = await a({data : values})
-        if (error) return toast.error(error)
-        toast.success("Course created successfully")
+        toast.loading("Creating course..." , {
+            id : "creatingCourse",
+        })
+        const { error , courseID } = await a({data : values})
+        if (error) { toast.error(error) }
+        toast.dismiss("creatingCourse")
+        if (courseID) {
+            toast.success("Course created successfully")
+            toast('View Course' , {
+                action : {
+                    label : "View",
+                    onClick : () => {throw redirect({to : "/app/course/$courseID" , params : {courseID : courseID }})},
+                }
+            })
+        }
         setCreatingCourse(false)
         setValues({
             topic: "",
