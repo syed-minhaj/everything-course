@@ -21,7 +21,7 @@ export function Providers({ children , theme }: { children: ReactNode , theme : 
     const router = useRouter()
     
     return (
-        <ThemeProvider theme={theme}>
+        <ThemeProvider attribute={"class"} defaultTheme={theme} enableSystem>
             <QueryClientProvider client={queryClient}>
                 <AuthQueryProvider>
                     <AuthUIProviderTanstack
