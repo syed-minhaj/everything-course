@@ -10,7 +10,7 @@ export const courseSchema = z.object({
         "title": z.string(),
         "conceptual_deep_dive": z.string(),
         "external_resources": z.array(z.object({
-            "type": z.string(),
+            "type": z.enum(["article", "youtube video", "podcast"]),
             "title": z.string(),
             "url": z.string()
         })),
