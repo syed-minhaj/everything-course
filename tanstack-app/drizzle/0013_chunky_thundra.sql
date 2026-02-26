@@ -1,0 +1,1 @@
+ALTER TABLE "external_resources" ALTER COLUMN "type" SET DATA TYPE text;

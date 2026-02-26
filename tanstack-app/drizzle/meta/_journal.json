@@ -92,6 +92,13 @@
       "when": 1770713928578,
       "tag": "0012_short_sentry",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1772136267079,
+      "tag": "0013_chunky_thundra",
+      "breakpoints": true
     }
   ]
 }

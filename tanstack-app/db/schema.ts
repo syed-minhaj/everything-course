@@ -6,9 +6,12 @@ import {
     integer,
     jsonb,
     primaryKey,
+    pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import {user, userToCourseTaken} from  "./auth-schema";
+
+const typeEnum = pgEnum('text', ["article" , "youtube video" , "podcast"]);
 
 /* ================= COURSE ================= */
 export const courses = pgTable("courses", {
@@ -34,7 +37,7 @@ export const externalResources = pgTable("external_resources", {
     moduleId: text("module_id")
         .references(() => modules.id , { onDelete: "cascade" })
         .notNull(),
-    type: varchar("type", { length: 50 }).notNull(), // article | youtube | podcast
+    type: typeEnum("type").notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     url: text("url").notNull(),
 });
