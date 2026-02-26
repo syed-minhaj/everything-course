@@ -67,9 +67,7 @@ Output Format: Return valid JSON only. Schema:
         {
             "title": "string",
             "conceptual_deep_dive": "10 words explaining the core theory of this module in detail.",
-            "external_resources": [
-                { "type": "article|youtube video(in embed form)|podcast", "title": "string", "url": "string" }
-            ],
+            "external_resources": { "type": "article|youtube video|podcast", "title": "string", "url": "string" }[],
             "assessment": {
                 "primary_mission": {
                     "title": "The main task",
