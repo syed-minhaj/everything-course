@@ -25,13 +25,13 @@ export const generateCourse = createServerFn({method: 'POST'})
                 throw redirect({to : "/app/auth/$authView" , params : {authView : "login"}})
             }
             const {success , course } = await geminiGenerator({course : {topic, userContext, depthLevel}})
-            if (!success) return {error : "Failed to generate course"};
+            if (!success) return {error : "Failed to generate course" , courseID: null};
             const courseCreated = await db.insert(courses).values({courseTitle: course.course_title, introSummary: course.intro_summary , createrId : session.user.id}).returning({id : courses.id});
-            if (!courseCreated) return {error : "Failed to create course"};
+            if (!courseCreated) return {error : "Failed to create course", courseID: null};
             const courseID = courseCreated[0].id;
             for (const module of course.modules) {
                 const moduleCreated = await db.insert(modules).values({courseId : courseID, title : module.title, conceptualDeepDive : module.conceptual_deep_dive}).returning({id : modules.id});
-                if (!moduleCreated) return {error : "Failed to create module"};
+                if (!moduleCreated) return {error : "Failed to create module" ,courseID: null};
                 const moduleID = moduleCreated[0].id;
                 for (const resource of module.external_resources) {
                     await db.insert(externalResources).values({moduleId : moduleID, type : resource.type, title : resource.title, url : resource.url});
@@ -44,12 +44,12 @@ export const generateCourse = createServerFn({method: 'POST'})
                 }
             }
             console.log("success")
-            return {error : null}
+            return {error : null , courseID : courseID}
 
         }catch(e ){
             console.error(e)
-            if (e instanceof Error) return {error : e.message}
-            else return {error : "Unknown error"}
+            if (e instanceof Error) return {error : e.message , courseID: null}
+            else return {error : "Unknown error" , courseID: null}
         }
 });
 
