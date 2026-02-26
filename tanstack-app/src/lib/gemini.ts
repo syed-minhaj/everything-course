@@ -143,7 +143,7 @@ async function generateGeneralCourse(
         if (err instanceof ApiError) {
             // structured API error from SDK
             throw new Error(
-                //`GenAI ApiError: ${err.name} ${err.status} ${err.message}`
+                `GenAI ApiError: ${err.name} ${err.status} ${err.message}`
             );
         }
         
