@@ -49,6 +49,7 @@ export default function CreateCourseForm() {
         if (courseID) {
             toast.success("Course created successfully")
             toast('View Course' , {
+                duration: 5000,
                 action : {
                     label : "View",
                     onClick : () => {throw redirect({to : "/app/course/$courseID" , params : {courseID : courseID }})},
