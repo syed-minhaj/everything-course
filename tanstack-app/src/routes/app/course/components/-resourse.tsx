@@ -6,14 +6,12 @@ import { eq } from "drizzle-orm"
 import { use, useEffect, useState } from "react"
 import ResourseItem from "./-resourseItem"
 import { useSuspenseQuery } from "@tanstack/react-query"
+import { courseType } from "@/types"
 
 
-type resourseType = {
+type resourseType = courseType["modules"][number]["external_resources"][number] & {
     id: string;
-    title: string;
     moduleId: string;
-    type: string;
-    url: string;
 }
 
 const getResources = createServerFn().inputValidator(z.string()).handler(async ({ data }) => {
@@ -40,10 +38,9 @@ export default function Resourse({moduleID} : {moduleID : string}) {
     resource.forEach((resource) => {
         switch (resource.type) {
             case "article":
-
                 articles.push(resource)
                 break;
-            case "youtube video(in embed form)":
+            case "youtube video":
                 videos.push(resource)
                 break;
             case "podcast":
