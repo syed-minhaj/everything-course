@@ -3,7 +3,6 @@ import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { externalResources } from "db/schema"
 import { eq } from "drizzle-orm"
-import { use, useEffect, useState } from "react"
 import ResourseItem from "./-resourseItem"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { courseType } from "@/types"
@@ -18,15 +17,10 @@ const getResources = createServerFn().inputValidator(z.string()).handler(async (
     const resources = await db.query.externalResources.findMany({
         where: eq(externalResources.moduleId , data),
     })
-    //console.log(resources)
     return resources
 })
 
 export default function Resourse({moduleID} : {moduleID : string}) {
-    //const [resources , setResources] = useState<resourseType[]>([])
-    // const [articles , setArticles] = useState<resourseType[]>([])
-    // const [videos , setVideos] = useState<resourseType[]>([])
-    // const [podcasts , setPodcasts] = useState<resourseType[]>([])
     const {data : resource} = useSuspenseQuery({
         queryKey: ["resources" , moduleID],
         queryFn: async() => getResources({data : moduleID})
@@ -49,25 +43,6 @@ export default function Resourse({moduleID} : {moduleID : string}) {
         }
     })
     
-    // useEffect(() => {
-    //     getResources({ data : moduleID }).then((res) => {
-    //         console.log(res)
-    //         res.forEach((resource) => {
-    //             switch (resource.type) {
-    //                 case "article":
-    //                     setArticles((articles) => [...articles , resource])
-    //                     break;
-    //                 case "youtube video(in embed form)":
-    //                     setVideos((videos) => [...videos , resource])
-    //                     break;
-    //                 case "podcast":
-    //                     setPodcasts((podcasts) => [...podcasts , resource])
-    //                     break;
-    //             }
-    //         })
-    //         //setResources([...articles , ...videos , ...podcasts])
-    //     })
-    // }, [])
 
     return (
         <div className="flex flex-col gap-4">
