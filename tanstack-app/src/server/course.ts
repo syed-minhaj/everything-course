@@ -4,7 +4,6 @@ import { geminiGenerator } from "@/lib/gemini";
 import { db } from "@/lib/drizzle";
 import { courses , modules , externalResources , primaryMissions , quickQuizzes } from "db/schema";
 import {z} from "zod"
-import { redirect } from "@tanstack/react-router";
 import { auth } from "@/lib/auth";
 import { getRequestHeaders } from "@tanstack/react-start-server";
 
@@ -22,7 +21,7 @@ export const generateCourse = createServerFn({method: 'POST'})
             const { topic, userContext, depthLevel } = await data;
             const session = await auth.api.getSession({ headers: getRequestHeaders()});
             if (!session || !session.user) {
-                throw redirect({to : "/app/auth/$authView" , params : {authView : "login"}})
+                return {error : "Not logged in" , courseID: null};
             }
             const {success , course } = await geminiGenerator({course : {topic, userContext, depthLevel}})
             if (!success) return {error : "Failed to generate course" , courseID: null};

@@ -45,7 +45,12 @@ export default function CreateCourseForm() {
             id : "creatingCourse",
         })
         const { error , courseID } = await a({data : values})
-        if (error) { toast.error(error) }
+        if (error) { 
+            if (error == "Not logged in") {
+                navigate({to : "/app/auth/$authView" , params : {authView : "login"}})
+            }
+            toast.error(error) 
+        }
         toast.dismiss("creatingCourse")
         if (courseID) {
             toast.success("Course created successfully")
