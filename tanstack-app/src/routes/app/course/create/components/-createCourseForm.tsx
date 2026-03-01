@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { generateCourse } from "@/server/course";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { redirect } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 export interface DiscoveryData {
     topic: string;
@@ -19,6 +19,7 @@ const DEPTH_LABELS = ["Surface Level", "Standard", "Deep Dive", "Academic"] as c
 
 export default function CreateCourseForm() {
     const a  = useServerFn(generateCourse)
+    const navigate = useNavigate()
     const [creatingCourse, setCreatingCourse] = useState(false)
     const [values, setValues] = useState<DiscoveryData>({
         topic: "",
@@ -52,7 +53,7 @@ export default function CreateCourseForm() {
                 duration: 5000,
                 action : {
                     label : "View",
-                    onClick : () => {throw redirect({to : "/app/course/$courseID" , params : {courseID : courseID }})},
+                    onClick : () => {navigate({to : "/app/course/$courseID" , params : {courseID : courseID }})},
                 }
             })
         }
