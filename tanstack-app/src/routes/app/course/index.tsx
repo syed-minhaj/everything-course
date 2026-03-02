@@ -4,8 +4,9 @@ import { courses, modules } from 'db/schema'
 import CoursePreview from './components/-coursePreview'
 import { count, eq } from 'drizzle-orm'
 import { createServerFn } from '@tanstack/react-start'
-import { Suspense } from 'react'
-import {useSuspenseQuery} from "@tanstack/react-query"
+import { Suspense, useEffect, useRef } from 'react'
+import {useInfiniteQuery} from "@tanstack/react-query"
+import z from 'zod'
 
 export type course = {
     id : string;
@@ -14,26 +15,62 @@ export type course = {
     no_of_modules : number;
 }
 
-const getCourses = createServerFn().handler(async () => {
-    
-    return await db.select({
-        id :courses.id,
-        courseTitle : courses.courseTitle,
-        introSummary : courses.introSummary,
-        no_of_modules : count(courses.id),
-    }).from(courses).leftJoin(modules , eq(courses.id , modules.courseId)).groupBy(courses.id)
-})
+const COURSES_PER_PAGE = 10;
 
-function CourseSection(){
-    const {data} = useSuspenseQuery({
+const getCourses = createServerFn()
+    .inputValidator(z.number().optional())
+    .handler(
+    async ({ data = 0 }) => {
+        return await db
+            .select({
+                id: courses.id,
+                courseTitle: courses.courseTitle,
+                introSummary: courses.introSummary,
+                no_of_modules: count(modules.id),
+            })
+            .from(courses).leftJoin(modules, eq(courses.id, modules.courseId))
+            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data)
+    }
+)
+
+function CourseSection() {
+    const loadMoreRef = useRef<HTMLDivElement | null>(null)
+    const {data,fetchNextPage,hasNextPage,isFetchingNextPage} = useInfiniteQuery({
         queryKey: ['courses'],
-        queryFn: getCourses,
+        initialPageParam: 0,
+        queryFn: ({ pageParam }) => getCourses({ data : pageParam }),
+        getNextPageParam: (lastPage, allPages) => {
+            if (lastPage.length < COURSES_PER_PAGE) return undefined
+            return allPages.length * COURSES_PER_PAGE
+        },
     })
+
+    useEffect(() => {
+        if (!hasNextPage) return
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                fetchNextPage()
+                }
+            },
+            { threshold: 1 }
+        )
+        if (loadMoreRef.current) {
+            observer.observe(loadMoreRef.current)
+        }
+        return () => observer.disconnect()
+    }, [fetchNextPage, hasNextPage])
+
     return (
-        <div className='w-11/12 mx-auto flex flex-col gap-4 py-8 '>
-            {data.map((course : course) => (
-                <CoursePreview key={course.id} course={course} />
-            ))}
+        <div className="w-11/12 mx-auto flex flex-col gap-4 py-8">
+            {data?.pages.map((page) =>
+                page.map((course: course) => (
+                    <CoursePreview key={course.id} course={course} />
+                ))
+            )}
+
+            <div ref={loadMoreRef} />
+            {isFetchingNextPage && <p className='mx-auto'>Loading more courses…</p>}
         </div>
     )
 }
