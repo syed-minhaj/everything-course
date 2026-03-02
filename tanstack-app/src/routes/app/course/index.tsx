@@ -1,10 +1,10 @@
 import { db } from '@/lib/drizzle'
 import { createFileRoute } from '@tanstack/react-router'
 import { courses, modules } from 'db/schema'
-import CoursePreview from './components/-coursePreview'
+import CoursePreview, { CourseSkeleton } from './components/-coursePreview'
 import { count, eq } from 'drizzle-orm'
 import { createServerFn } from '@tanstack/react-start'
-import { Suspense, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import {useInfiniteQuery} from "@tanstack/react-query"
 import z from 'zod'
 
@@ -35,7 +35,7 @@ const getCourses = createServerFn()
 
 function CourseSection() {
     const loadMoreRef = useRef<HTMLDivElement | null>(null)
-    const {data,fetchNextPage,hasNextPage,isFetchingNextPage} = useInfiniteQuery({
+    const {data, fetchNextPage , hasNextPage , isFetching} = useInfiniteQuery({
         queryKey: ['courses'],
         initialPageParam: 0,
         queryFn: ({ pageParam }) => getCourses({ data : pageParam }),
@@ -70,7 +70,7 @@ function CourseSection() {
             )}
 
             <div ref={loadMoreRef} />
-            {isFetchingNextPage && <p className='mx-auto'>Loading more courses…</p>}
+            {isFetching && <CourseSkeleton />}
         </div>
     )
 }
@@ -86,9 +86,7 @@ function RouteComponent() {
              border-b-amber-400 border-b-4  ' >
                 Course Catalog
             </h2>
-            <Suspense fallback={<div></div>}>
-                <CourseSection />
-            </Suspense>
+            <CourseSection />
         </div>
     )
 }

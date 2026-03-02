@@ -1,4 +1,3 @@
-import { courseTypeDB } from "@/types"
 import { Link } from "@tanstack/react-router"
 import { course } from ".."
 
@@ -19,4 +18,23 @@ function CoursePreview({course} : {course : course}) {
         </Link>
     )
 }
+
+function CourseSkeleton() {
+    return (
+        <div className="bg-bg2 w-full border border-black dark:border-white/50 hover:border-amber-400">
+            <div className="w-11/12 mx-auto my-4 flex flex-col gap-4">
+                <div className="flex flex-row items-center justify-between">
+                    <div className="flex-1 flex flex-col gap-1">
+                        <h3 className=" font-light opacity-50">Course</h3>
+                        <h3 className="w-80 h-8 bg-gray-200/60 rounded animate-pulse"></h3>
+                    </div>
+                </div>
+                <p className="w-5/6 h-20 bg-gray-200/60 rounded animate-pulse"></p>
+            </div>
+        </div>
+    )
+}
+
+export {CourseSkeleton}
+
 export default CoursePreview
