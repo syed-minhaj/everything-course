@@ -71,6 +71,7 @@ function CourseSection() {
 
             <div ref={loadMoreRef} />
             {isFetching && <CourseSkeleton />}
+            <div ref={loadMoreRef} />
         </div>
     )
 }

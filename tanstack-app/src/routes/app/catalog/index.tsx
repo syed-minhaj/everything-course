@@ -120,8 +120,8 @@ function CourseSection({tap} : {tap : typeof Taps[number]}) {
                 ))
             )}
 
-            <div ref={loadMoreRef} />
             {isFetching && <CourseSkeleton />}
+            <div ref={loadMoreRef} />
         </div>
     )
 }
