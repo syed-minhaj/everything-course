@@ -143,7 +143,7 @@ function RouteComponent() {
             <div className='flex flex-row justify-center mx-auto mt-8 border-2 border-gray-700 w-fit'>
                 {Taps.map((tap) =>
                     <button onClick={() => updateHash(tap)} disabled={hash == tap} key={tap}
-                        className={`h-20 w-60 ${hash == tap ? "inset-shadow-sm inset-shadow-black/50" : "bg-primary shadow-md shadow-black/50"} font-bold`}>
+                        className={`h-15 w-40 sm:h-20 sm:w-60  ${hash == tap ? "inset-shadow-sm inset-shadow-black/50" : "bg-primary shadow-md shadow-black/50"} font-bold`}>
                         {tap}
                     </button>
                 )}
