@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { courses, modules } from 'db/schema'
 import { userToCourseTaken } from 'db/auth-schema'
 import CoursePreview, { CourseSkeleton } from '../course/components/-coursePreview'
-import { count, eq } from 'drizzle-orm'
+import { count, eq , and , ilike} from 'drizzle-orm'
 import { createMiddleware, createServerFn } from '@tanstack/react-start'
 import { useEffect, useRef } from 'react'
 import {useInfiniteQuery} from "@tanstack/react-query"
@@ -11,6 +11,8 @@ import z from 'zod'
 import { auth } from '@/lib/auth'
 import { getRequestHeaders } from '@tanstack/react-start-server'
 import { useHash } from '@/hooks/hash'
+import useDebounce from '@/hooks/debounce'
+import Search from '@/components/search'
 
 export type course = {
     id : string;
@@ -33,9 +35,9 @@ const authMiddleware = createMiddleware().server(async ({ next }) => {
 
 const getCoursesCreated = createServerFn()
     .middleware([authMiddleware])
-    .inputValidator(z.number().optional())
+    .inputValidator(z.object({pageParam : z.number().optional() , search : z.string().optional()}))
     .handler(
-    async ({ data = 0 , context }) => {
+    async ({ data , context }) => {
         const user = context.user
         return await db
             .select({
@@ -44,18 +46,23 @@ const getCoursesCreated = createServerFn()
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
             })
-            .from(courses).where(eq(courses.createrId , user.id))
+            .from(courses).where(and(
+                eq(courses.createrId , user.id),
+                data.search
+                    ? ilike(courses.courseTitle, `%${data.search}%`)
+                    : undefined
+            ))
             .leftJoin(modules, eq(courses.id, modules.courseId))
-            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data)
+            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data.pageParam ?? 0)
     }
     )
 
 
 const getCoursesTaken = createServerFn()
     .middleware([authMiddleware])
-    .inputValidator(z.number().optional())
+    .inputValidator(z.object({pageParam : z.number().optional() , search : z.string().optional()}))
     .handler(
-    async ({ data = 0 , context }) => {
+    async ({ data , context }) => {
         const user = context.user
         return await db
             .select({
@@ -67,20 +74,25 @@ const getCoursesTaken = createServerFn()
             })
             .from(courses)
             .innerJoin(userToCourseTaken, eq(courses.id, userToCourseTaken.courseId))
-            .where(eq(userToCourseTaken.userId , user.id))
+            .where(and(
+                eq(userToCourseTaken.userId , user.id), 
+                data.search
+                    ? ilike(courses.courseTitle, `%${data.search}%`)
+                    : undefined
+            ))
             .leftJoin(modules, eq(courses.id, modules.courseId))
-            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data)
+            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data.pageParam ?? 0)
     }
     )
 
-function CourseSection({tap} : {tap : typeof Taps[number]}) {
+function CourseSection({tap , search} : {tap : typeof Taps[number] , search : string}) {
     let func = tap == "Inroaled" ? getCoursesTaken : getCoursesCreated
     const loadMoreRef = useRef<HTMLDivElement | null>(null)
     const navigate = useNavigate()
     const {data, fetchNextPage , hasNextPage , isFetching , error} = useInfiniteQuery({
-        queryKey: [tap],
+        queryKey: [tap , search],
         initialPageParam: 0,
-        queryFn: ({ pageParam }) => func({ data : pageParam }),
+        queryFn: ({ pageParam }) => func({ data : {pageParam , search} }),
         getNextPageParam: (lastPage, allPages) => {
             if (lastPage.length < COURSES_PER_PAGE) return undefined
             return allPages.length * COURSES_PER_PAGE
@@ -128,11 +140,34 @@ function CourseSection({tap} : {tap : typeof Taps[number]}) {
 
 export const Route = createFileRoute('/app/catalog/')({
     component: RouteComponent,
+    validateSearch: z.object({
+        search: z.string().optional(),
+    }),
 })
 
 function RouteComponent() {
 
     const {hash , updateHash} = useHash<typeof Taps[number]>("Inroaled" , Taps)
+    const navigate = Route.useNavigate()
+    const {search} = Route.useSearch()
+    const debouncedSearch = useDebounce(search ?? "" , 500)
+
+    function handleSearchChange(value: string) {
+        navigate({
+            search: (prev) => ({
+                ...prev,
+                search: value || undefined, 
+            }),
+        })
+    }
+    function deleteSeacrh() {
+        navigate({
+            search: undefined,
+        })
+    }
+    useEffect(() => {
+        window.scrollTo({ top: 0 })
+    }, [debouncedSearch])
 
     return (
         <div className='bg-bg1 flex-1  overflow-auto'>
@@ -148,7 +183,10 @@ function RouteComponent() {
                     </button>
                 )}
             </div>
-            <CourseSection tap={hash} />
+            <div className='pt-8 w-11/12 mx-auto'>
+                <Search search={search} handleSearchChange={handleSearchChange} deleteSeacrh={deleteSeacrh} />
+            </div>
+            <CourseSection tap={hash} search={debouncedSearch} />
         </div>
     )
 }

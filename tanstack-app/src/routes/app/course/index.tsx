@@ -2,11 +2,13 @@ import { db } from '@/lib/drizzle'
 import { createFileRoute } from '@tanstack/react-router'
 import { courses, modules } from 'db/schema'
 import CoursePreview, { CourseSkeleton } from './components/-coursePreview'
-import { count, eq } from 'drizzle-orm'
+import { count, eq , ilike} from 'drizzle-orm'
 import { createServerFn } from '@tanstack/react-start'
 import { useEffect, useRef } from 'react'
 import {useInfiniteQuery} from "@tanstack/react-query"
 import z from 'zod'
+import useDebounce from '@/hooks/debounce'
+import Search from '@/components/search'
 
 export type course = {
     id : string;
@@ -18,9 +20,9 @@ export type course = {
 const COURSES_PER_PAGE = 10;
 
 const getCourses = createServerFn()
-    .inputValidator(z.number().optional())
+    .inputValidator(z.object({pageParam : z.number().optional() , search : z.string().optional()}))
     .handler(
-    async ({ data = 0 }) => {
+    async ({ data }) => {
         return await db
             .select({
                 id: courses.id,
@@ -28,17 +30,23 @@ const getCourses = createServerFn()
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
             })
-            .from(courses).leftJoin(modules, eq(courses.id, modules.courseId))
-            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data)
+            .from(courses)
+            .where(
+                data.search
+                    ? ilike(courses.courseTitle, `%${data.search}%`)
+                    : undefined
+            )
+            .leftJoin(modules, eq(courses.id, modules.courseId))
+            .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data.pageParam ?? 0)
     }
 )
 
-function CourseSection() {
+function CourseSection({search} : {search : string}) {
     const loadMoreRef = useRef<HTMLDivElement | null>(null)
     const {data, fetchNextPage , hasNextPage , isFetching} = useInfiniteQuery({
-        queryKey: ['courses'],
+        queryKey: ['courses' , search],
         initialPageParam: 0,
-        queryFn: ({ pageParam }) => getCourses({ data : pageParam }),
+        queryFn: ({ pageParam }) => getCourses({ data : {pageParam , search} }),
         getNextPageParam: (lastPage, allPages) => {
             if (lastPage.length < COURSES_PER_PAGE) return undefined
             return allPages.length * COURSES_PER_PAGE
@@ -69,7 +77,6 @@ function CourseSection() {
                 ))
             )}
 
-            <div ref={loadMoreRef} />
             {isFetching && <CourseSkeleton />}
             <div ref={loadMoreRef} />
         </div>
@@ -78,16 +85,43 @@ function CourseSection() {
 
 export const Route = createFileRoute('/app/course/')({
     component: RouteComponent,
+    validateSearch: z.object({
+        search: z.string().optional(),
+    }),
 })
 
 function RouteComponent() {
+    const navigate = Route.useNavigate()
+    const {search} = Route.useSearch()
+    const debouncedSearch = useDebounce(search ?? "" , 500)
+
+    function handleSearchChange(value: string) {
+        navigate({
+            search: (prev) => ({
+                ...prev,
+                search: value || undefined, 
+            }),
+        })
+    }
+    function deleteSeacrh() {
+        navigate({
+            search: undefined,
+        })
+    }
+    useEffect(() => {
+        window.scrollTo({ top: 0 })
+    }, [debouncedSearch])
+
     return (
         <div className='bg-bg1 flex-1  overflow-auto'>
             <h2 className='font-irish-grover text-4xl mx-auto py-34 text-center bg-[url(/bgImageCoursePage.webp)] bg-cover bg-center
              border-b-amber-400 border-b-4  ' >
                 Course Catalog
             </h2>
-            <CourseSection />
+            <div className='pt-8 w-11/12 mx-auto'>
+                <Search search={search} handleSearchChange={handleSearchChange} deleteSeacrh={deleteSeacrh} />
+            </div>
+            <CourseSection search={debouncedSearch} />
         </div>
     )
 }
