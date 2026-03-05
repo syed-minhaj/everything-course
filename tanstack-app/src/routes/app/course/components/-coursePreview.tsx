@@ -45,6 +45,7 @@ function CoursePreview({course} : {course : course}) {
         queryFn: async() => getNoOfModuleComplelted({data : course.id}),
         gcTime: 1000 * 60 * 60 * 24 * 7,
     })
+    let courseCompleted = data.data == course.no_of_modules
 
     return (
         <Link to="/app/course/$courseID" params={{courseID : course.id}} className="bg-bg2 w-full border border-black dark:border-white/50 hover:border-amber-400">
@@ -54,7 +55,7 @@ function CoursePreview({course} : {course : course}) {
                         <h3 className=" font-light opacity-50">Course</h3>
                         <h3 className=" font-medium text-2xl">{course.courseTitle}</h3>
                     </div>
-                    <span className="opacity-50 w-fit" >{data.data ?? 0} / {course.no_of_modules}</span>
+                    <span className={`opacity-50 w-fit ${courseCompleted && "text-amber-400 opacity-100"} `} >{data.data ?? 0} / {course.no_of_modules}</span>
                 </div>
                 <p className="md:w-5/6 ">{course.introSummary}</p>
             </div>
