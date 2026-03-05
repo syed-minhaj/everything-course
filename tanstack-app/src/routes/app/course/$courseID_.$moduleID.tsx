@@ -59,6 +59,7 @@ function RouteComponent() {
     const { moduleID} = Route.useParams() 
 
     const isDesktop = useMediaQuery({minWidth : 1224})
+    const isMobile = useMediaQuery({maxWidth : 1224})
     const [view , setView] = useState<"content"|"Task">("content")
 
     
@@ -68,7 +69,7 @@ function RouteComponent() {
             <TaskContextProvider>
                 <Topbar modules={course.modules} moduleID={moduleID} />
                 <Separator className=" bg-black/50" />
-                {isDesktop ? 
+                {isDesktop && 
                     <ResizablePanelGroup direction="horizontal" className='flex flex-row h-[calc(100%-(48px+8px))] '>
                         <ResizablePanel className='overflow-y-auto!' defaultSize={50}>
                             <Content moduleID={moduleID} course={course}/>
@@ -84,7 +85,8 @@ function RouteComponent() {
                             <Task moduleID={moduleID} />
                         </ResizablePanel>
                     </ResizablePanelGroup>
-                :   
+                }   
+                {isMobile &&
                     <>
                         <SetView view={view} setView={setView} />
                         <Separator className=" bg-black/50" />
@@ -102,7 +104,6 @@ function RouteComponent() {
                             </>
                         }
                     </>
-
                 }
             </TaskContextProvider>
         </div>
