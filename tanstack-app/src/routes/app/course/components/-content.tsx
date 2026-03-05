@@ -27,9 +27,9 @@ export default function Content({moduleID , course} : {moduleID : string , cours
     }
     
     return (
-        <div className="flex flex-col flex-1  px-12 py-6 gap-9">
-            <h3 className="font-irish-grover text-[2rem]">{module.title}</h3>
-            <p className="text-xl">{module.conceptualDeepDive}</p>
+        <div className="flex flex-col flex-1 px-6 sm:px-12 py-6 gap-9">
+            <h3 className="font-irish-grover text-[1.5rem] sm:text-[2rem]">{module.title}</h3>
+            <p className="text-lg sm:text-xl">{module.conceptualDeepDive}</p>
             <Suspense>
                 <Resourse moduleID={moduleID}/>
             </Suspense>
