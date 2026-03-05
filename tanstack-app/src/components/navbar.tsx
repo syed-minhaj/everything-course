@@ -1,7 +1,7 @@
 import { useTheme } from '@/components/theme-provider'
 import { UserButton } from '@daveyplate/better-auth-ui';
 import { Link } from '@tanstack/react-router';
-import { Moon, Sun , BookPlus } from 'lucide-react'
+import { Moon, Sun , BookPlus, Book } from 'lucide-react'
 
 
 function ModeToggle() {
@@ -26,13 +26,20 @@ export default function Navbar() {
                 Everything Course
             </Link>
             <div className='ml-auto gap-4 flex items-center '>
+                <Link to="/app/catalog" className='sm:flex gap-1 hidden '>
+                    <Book/>
+                    My Courses
+                </Link>
                 <Link to="/app/course/create" className='sm:flex gap-1 hidden '>
                     <BookPlus/>
                     Create Course
                 </Link>
                 <ModeToggle />
                 <UserButton size="icon" 
-                    additionalLinks={[{href : "/app/course/create" , label : "Create Course" , icon : <BookPlus/>}]} 
+                    additionalLinks={[
+                        {href : "/app/catalog" , label : "My Courses" , icon: <Book/> },
+                        {href : "/app/course/create" , label : "Create Course" , icon : <BookPlus/>},
+                    ]} 
                 />
             </div>
         </div>
