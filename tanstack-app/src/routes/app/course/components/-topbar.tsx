@@ -75,7 +75,7 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
     }
 
     return (
-        <div className='flex flex-row items-center justify-end gap-4 px-8 py-1  '>
+        <div className='flex flex-row items-center justify-end gap-4 px-8 py-1 relative '>
             {isPrev && 
                 <Button onClick={prev} className='rounded-4xl px-3 absolute left-8'>{"<--"}</Button>
             }
