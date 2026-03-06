@@ -13,6 +13,7 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppCourseIndexRouteImport } from './routes/app/course/index'
+import { Route as AppCatalogIndexRouteImport } from './routes/app/catalog/index'
 import { Route as AppCourseCourseIDRouteImport } from './routes/app/course/$courseID'
 import { Route as AppAuthAuthViewRouteImport } from './routes/app/auth/$authView'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -37,6 +38,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppCourseIndexRoute = AppCourseIndexRouteImport.update({
   id: '/course/',
   path: '/course/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppCatalogIndexRoute = AppCatalogIndexRouteImport.update({
+  id: '/catalog/',
+  path: '/catalog/',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppCourseCourseIDRoute = AppCourseCourseIDRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/auth/$authView': typeof AppAuthAuthViewRoute
   '/app/course/$courseID': typeof AppCourseCourseIDRoute
+  '/app/catalog/': typeof AppCatalogIndexRoute
   '/app/course/': typeof AppCourseIndexRoute
   '/app/course/$courseID/$moduleID': typeof AppCourseCourseIDModuleIDRoute
   '/app/course/create/': typeof AppCourseCreateIndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/auth/$authView': typeof AppAuthAuthViewRoute
   '/app/course/$courseID': typeof AppCourseCourseIDRoute
+  '/app/catalog': typeof AppCatalogIndexRoute
   '/app/course': typeof AppCourseIndexRoute
   '/app/course/$courseID/$moduleID': typeof AppCourseCourseIDModuleIDRoute
   '/app/course/create': typeof AppCourseCreateIndexRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/auth/$authView': typeof AppAuthAuthViewRoute
   '/app/course/$courseID': typeof AppCourseCourseIDRoute
+  '/app/catalog/': typeof AppCatalogIndexRoute
   '/app/course/': typeof AppCourseIndexRoute
   '/app/course/$courseID_/$moduleID': typeof AppCourseCourseIDModuleIDRoute
   '/app/course/create/': typeof AppCourseCreateIndexRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app/auth/$authView'
     | '/app/course/$courseID'
+    | '/app/catalog/'
     | '/app/course/'
     | '/app/course/$courseID/$moduleID'
     | '/app/course/create/'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app/auth/$authView'
     | '/app/course/$courseID'
+    | '/app/catalog'
     | '/app/course'
     | '/app/course/$courseID/$moduleID'
     | '/app/course/create'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app/auth/$authView'
     | '/app/course/$courseID'
+    | '/app/catalog/'
     | '/app/course/'
     | '/app/course/$courseID_/$moduleID'
     | '/app/course/create/'
@@ -168,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/course'
       fullPath: '/app/course/'
       preLoaderRoute: typeof AppCourseIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/catalog/': {
+      id: '/app/catalog/'
+      path: '/catalog'
+      fullPath: '/app/catalog/'
+      preLoaderRoute: typeof AppCatalogIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/course/$courseID': {
@@ -212,6 +231,7 @@ interface AppRouteRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAuthAuthViewRoute: typeof AppAuthAuthViewRoute
   AppCourseCourseIDRoute: typeof AppCourseCourseIDRoute
+  AppCatalogIndexRoute: typeof AppCatalogIndexRoute
   AppCourseIndexRoute: typeof AppCourseIndexRoute
   AppCourseCourseIDModuleIDRoute: typeof AppCourseCourseIDModuleIDRoute
   AppCourseCreateIndexRoute: typeof AppCourseCreateIndexRoute
@@ -221,6 +241,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAuthAuthViewRoute: AppAuthAuthViewRoute,
   AppCourseCourseIDRoute: AppCourseCourseIDRoute,
+  AppCatalogIndexRoute: AppCatalogIndexRoute,
   AppCourseIndexRoute: AppCourseIndexRoute,
   AppCourseCourseIDModuleIDRoute: AppCourseCourseIDModuleIDRoute,
   AppCourseCreateIndexRoute: AppCourseCreateIndexRoute,
