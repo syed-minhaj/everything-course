@@ -1,8 +1,3 @@
-import { db } from "@/lib/drizzle"
-import { createServerFn } from "@tanstack/react-start"
-import { externalResources , modules} from "db/schema"
-import { eq } from "drizzle-orm";
-import {z} from "zod";
 import Resourse from "./-resourse";
 import { Suspense } from "react";
 
