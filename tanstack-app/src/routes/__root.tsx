@@ -46,7 +46,7 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const theme = Route.useLoaderData()
   return (
-    <html className={theme}  lang="en">
+    <html className={theme}  lang="en" suppressHydrationWarning>
       <head>
          <meta
             name="viewport"
