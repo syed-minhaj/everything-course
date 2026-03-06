@@ -4,6 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import appCss from '../styles.css?url'
 import { getThemeServerFn } from '@/lib/theme'
 import "@fontsource/irish-grover";
+import TopLoader from '@/components/topLoader'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -66,6 +67,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body suppressHydrationWarning >
+            <TopLoader color={"var(--primary)"} showSpinner={false} />
             {children}
         <TanStackDevtools
           config={{
