@@ -1,28 +1,57 @@
 import { Separator } from '@/components/ui/separator'
 import { db } from '@/lib/drizzle'
-import { createFileRoute,  redirect } from '@tanstack/react-router'
+import { createFileRoute,  Link,  redirect } from '@tanstack/react-router'
 import { createServerFn, useServerFn } from '@tanstack/react-start'
 import {z} from "zod";
 import { getRequestHeaders } from "@tanstack/react-start-server";
 import { auth } from '@/lib/auth'
 import { userToCourseTaken } from 'db/auth-schema'
 import { useState } from 'react'
+import { courses, modules } from 'db/schema';
+import { primaryMissions, quickQuizzes, userToPrimaryMissionsPassed, userToQuickQuizzesPassed } from 'db/schema';
+import { and, eq } from 'drizzle-orm';
 
 
 const courseIDSchema = z.string()
 const getCoursee = createServerFn()
     .inputValidator(courseIDSchema)
     .handler(async({data}) => {
+        const session = await auth.api.getSession({ headers: getRequestHeaders()});
         const course = await db.query.courses.findFirst({
             where: (courses , {eq}) => eq(courses.id , data),
             with : {
                 modules : true,
+                student : {
+                    where : (student , {eq}) => eq(student.userId , session?.user.id ?? ""),
+                    columns : {userId : true}
+                }
             }
         })
         if (!course) {
             throw redirect({to : "/app/course"})
         };
-        return course
+        if (course.student.length == 0) return Object.assign(course , {moduleI : 0})
+        const completedModules = await db.select({
+            moduleId: modules.id,
+        }).from(modules)
+            .innerJoin(courses, eq(modules.courseId, courses.id))
+            .innerJoin(quickQuizzes, eq(modules.id, quickQuizzes.moduleId))
+            .innerJoin(primaryMissions, eq(modules.id, primaryMissions.moduleId))
+            .innerJoin(userToQuickQuizzesPassed, eq(quickQuizzes.id, userToQuickQuizzesPassed.quickQuizId))
+            .innerJoin(userToPrimaryMissionsPassed, eq(primaryMissions.id, userToPrimaryMissionsPassed.primaryMissionId))
+            .where(and(
+                eq(courses.id, data),
+                eq(userToQuickQuizzesPassed.userId, session?.user.id ?? ""),
+                eq(userToPrimaryMissionsPassed.userId, session?.user.id ?? "")
+            ))
+            .execute();
+
+        if (completedModules.length === 0) return Object.assign(course , {moduleI : 0})
+
+        const indexOfNextModule = course.modules.findIndex((module) => 
+            completedModules.every((completedModule) => completedModule.moduleId !== module.id)
+        );
+        return Object.assign(course , {moduleI : indexOfNextModule == -1 ? 0 : indexOfNextModule})
 })
 
 const joinCourseFn = createServerFn()
@@ -69,9 +98,14 @@ function RouteComponent() {
                     <div className='flex flex-col gap-8 items-center justify-center'>
                         <h2 className='font-irish-grover text-2xl sm:text-4xl text-center text-white '>{course.courseTitle}</h2>
                         <div className='flex flex-row gap-6 text-white text-lg font-bold'>
-                            <button onClick={() => join({courseID: course.id , moduleID : course.modules[0].id})} 
-                                className='py-4 px-6 rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Join Coure</button>
-                            <a href="#detail" className='py-4 px-6 rounded-sm  bg-[#919191]'>Learn More</a>
+                            {course.student.length > 0 ?  
+                                <Link to="/app/course/$courseID/$moduleID" params={{courseID : course.id , moduleID : course.modules[course.moduleI].id}} 
+                                className='w-37 py-4 text-center rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Continue</Link>
+                            :
+                                <button onClick={() => join({courseID: course.id , moduleID : course.modules[0].id})} 
+                                className='w-37 py-4 text-center rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Join Coure</button>
+                            }
+                            <a href="#detail" className='w-37 py-4 text-center rounded-sm  bg-[#919191]'>Learn More</a>
                         </div>
                     </div>
                 </div>
