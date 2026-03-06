@@ -52,7 +52,7 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
             const indexofCurrentModule = modules.findIndex((m) => m.id === moduleID)
             const nextModule = modules[indexofCurrentModule + 1]
             navigate({to : "/app/course/$courseID/$moduleID" 
-                , params : {courseID : modules[0].courseId , moduleID : nextModule.id }
+                , reloadDocument: true , params : {courseID : modules[0].courseId , moduleID : nextModule.id }
             })
         }
     }
@@ -66,7 +66,7 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
             const indexofCurrentModule = modules.findIndex((m) => m.id === moduleID)
             const lastModule = modules[indexofCurrentModule - 1]
             navigate({to : "/app/course/$courseID/$moduleID" 
-                ,  params : {courseID : modules[0].courseId , moduleID : lastModule.id }
+                , reloadDocument: true ,  params : {courseID : modules[0].courseId , moduleID : lastModule.id }
             })
         } else {
             setTask("Quiz")
