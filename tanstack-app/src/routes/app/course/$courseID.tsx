@@ -46,7 +46,7 @@ const joinCourseFn = createServerFn()
 export const Route = createFileRoute('/app/course/$courseID')({
     loader:  async({ params }) => await getCoursee({ data : params.courseID }),
     component: RouteComponent,
-    pendingComponent: () => <div>Loading Course...</div>,
+    pendingComponent: () => <div className='bg-bg1 flex-1'></div>,
 })
 
 
