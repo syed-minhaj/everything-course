@@ -57,6 +57,7 @@ const TopLoader = ({
                 setProgress((prev) => {
                     const increment = (100 - prev) * 0.05;
                     const next = prev + increment;
+                    
                     return next >= 94 ? 94 : next;
                 });
             }, crawlSpeed);
@@ -74,6 +75,7 @@ const TopLoader = ({
     };
 
     useEffect(() => {
+        // Subscribe to router navigation events (for SPA navigations)
         const unsubscribeBeforeLoad = router.subscribe('onBeforeLoad', () => {
             startLoading();
         });
@@ -82,9 +84,16 @@ const TopLoader = ({
             completeLoading();
         });
 
+        const handleBeforeUnload = () => {
+            startLoading();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
         return () => {
             unsubscribeBeforeLoad();
             unsubscribeLoad();
+            window.removeEventListener('beforeunload', handleBeforeUnload);
             clearTimers();
         };
     }, [router, initialPosition, crawlSpeed, crawl, speed]);
