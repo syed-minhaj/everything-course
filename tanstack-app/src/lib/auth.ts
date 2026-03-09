@@ -6,7 +6,7 @@ export const auth = betterAuth({
     appName: "Everything Course",
     baseURL: process.env.BETTER_AUTH_URL as string,
     database: drizzleAdapter(db, {
-        provider: "pg", // or "mysql", "sqlite"
+        provider: "pg", 
     }),
     emailAndPassword: { 
         enabled: true, 
