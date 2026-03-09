@@ -115,6 +115,7 @@ async function generateGeneralCourse(
     const prompt = buildPrompt(params);
 
     const groundingTool = {
+        urlContext: {},
         googleSearch: {},
     };
 
@@ -123,19 +124,32 @@ async function generateGeneralCourse(
                 model: "gemini-2.5-flash",
                 contents: prompt,
                 config: {
-                    temperature: 0.3,
+                    temperature: 0.2,
                     tools: [groundingTool],
                 },
             });
             if (!response.text) {
                 throw new Error("No response text")
             }
-            const json : courseType = safeParseJson(response.text);
+            const json = safeParseJson(response.text);
             const parsed = courseSchema.safeParse(json)
             if (!parsed.success) {
                 throw new Error("Failed to parse JSON")
             }
-            return json
+            const course : courseType = parsed.data
+            
+            for (const module of course.modules) {
+                const validatedResources = [] ;
+                for (const res of module.external_resources) {
+                    if (res.url.includes("youtube.com/watch?v=")) {
+                        res.type = "youtube video"
+                        res.url = res.url.replace("watch?v=", "embed/");
+                    }
+                    validatedResources.push(res);  
+                }
+                module.external_resources = validatedResources;
+            }
+            return course
         
     } catch (err: unknown) {
         if (err instanceof ApiError) {
