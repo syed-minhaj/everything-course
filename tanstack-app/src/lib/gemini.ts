@@ -2,6 +2,7 @@
 import { GoogleGenAI, ApiError } from "@google/genai";
 import { courseType } from "@/types";
 import {z} from "zod"
+import {getYoutubeUrl , getOtherUrl} from "./resourseURL";
 
 export const courseSchema = z.object({
     "course_title": z.string(),
@@ -50,10 +51,10 @@ User Request:
 Directives:
 1. Variable Structure: Decide the number of modules based on the topic.
 2. Detailed Content: Provide deep explanations, not just headings.
-3. Verified Links: Use Google Search to find real working URLs , videos should only be youtube embed.
-4. Use Google Search to find REAL, functioning YouTube videos for the topic.
-5. MANDATORY: YouTube URLs MUST be in embed format: https://www.youtube.com/embed/[VIDEO_ID]..
-6. Do not invent video IDs; they must be real results.
+3. Verified Links: Use Google Search to find real working URLs .
+4. Use Google Search to find REAL.
+5. MANDATORY: For youtube video don't search for url just return empty string "" .
+6. Include good mix of articles and youtube videos.
 7. Conceptual deep dives must be detailed (10 words).
 8. Hybrid Assessment (90/10 Split):
    - PRIMARY: Practical Mission
@@ -141,9 +142,25 @@ async function generateGeneralCourse(
             for (const module of course.modules) {
                 const validatedResources = [] ;
                 for (const res of module.external_resources) {
-                    if (res.url.includes("youtube.com/watch?v=")) {
-                        res.type = "youtube video"
-                        res.url = res.url.replace("watch?v=", "embed/");
+                    if (res.type === "youtube video"){
+                        let youtubeRes ;
+                        let tryCount = 0;
+                        while (!youtubeRes && tryCount < 3) {
+                            tryCount++;
+                            youtubeRes = await getYoutubeUrl({title : res.title })
+                        }
+                        if (!youtubeRes) continue;
+                        res.title = youtubeRes.title;
+                        res.url = `https://www.youtube.com/embed/${youtubeRes.id}`;
+                    }else{
+                        let otherRes ;
+                        let tryCount = 0;
+                        while (!otherRes && tryCount < 3) {
+                            tryCount++;
+                            otherRes = await getOtherUrl({url : res.url })
+                        }
+                        if (!otherRes) continue;
+                        res.url = otherRes;
                     }
                     validatedResources.push(res);  
                 }
