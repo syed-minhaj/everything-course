@@ -6,7 +6,8 @@ import { courses , modules , externalResources , primaryMissions , quickQuizzes 
 import {z} from "zod"
 import { auth } from "@/lib/auth";
 import { getRequestHeaders } from "@tanstack/react-start-server";
-
+import { user } from "db/auth-schema";
+import { eq } from "drizzle-orm";
 
 
 const courseInputSchema = z.object({
@@ -14,6 +15,14 @@ const courseInputSchema = z.object({
     userContext: z.string(),
     depthLevel: z.string()
 })
+
+const userAllowedToCreateCourse = async(userID : string) => {
+    const courseCount = await db.select({
+        id : user.id
+    }).from(user).where(eq(user.id , userID)).execute();
+    return courseCount.length < 2;
+}
+
 export const generateCourse = createServerFn({method: 'POST'})
     .inputValidator(courseInputSchema)
     .handler(async ({data}) => {
@@ -23,6 +32,11 @@ export const generateCourse = createServerFn({method: 'POST'})
             if (!session || !session.user) {
                 return {error : "Not logged in" , courseID: null};
             }
+            const AdminID = process.env.ADMIN_ID;
+            if (session.user.id !== AdminID && await userAllowedToCreateCourse(session.user.id)) {
+                return {error : "Not allowed to create course (max 2 courses per user)" , courseID: null};
+            }
+
             const {success , course } = await geminiGenerator({course : {topic, userContext, depthLevel}})
             if (!success) return {error : "Failed to generate course" , courseID: null};
             const courseCreated = await db.insert(courses).values({courseTitle: course.course_title, introSummary: course.intro_summary , createrId : session.user.id}).returning({id : courses.id});
