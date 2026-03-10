@@ -75,9 +75,9 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
     }
 
     return (
-        <div className='flex flex-row items-center justify-end gap-4 px-8 py-1 relative '>
+        <div className='flex flex-row items-center justify-end gap-4 px-6 md:px-8 py-1 relative '>
             {isPrev && 
-                <Button onClick={prev} className='rounded-4xl px-3 absolute left-8'>{"<--"}</Button>
+                <Button onClick={prev} className='rounded-4xl px-3 absolute left-6 md:left-8'>{"<--"}</Button>
             }
             <div className='pr-15 flex flex-row gap-4'>
                 <Select value={selectedValue} onValueChange={setSelectedValue}>
@@ -113,7 +113,7 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
                 </Select>
             </div>
             {isNext && 
-                <Button onClick={next} className='rounded-4xl px-3 absolute right-8'>{"-->"}</Button>
+                <Button onClick={next} className='rounded-4xl px-3 absolute right-6 nd:right-8'>{"-->"}</Button>
             }
         </div>
     )
