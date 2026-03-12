@@ -33,7 +33,7 @@ export const generateCourse = createServerFn({method: 'POST'})
                 return {error : "Not logged in" , courseID: null};
             }
             const AdminID = process.env.ADMIN_ID;
-            if (session.user.id !== AdminID && await userAllowedToCreateCourse(session.user.id)) {
+            if (session.user.id !== AdminID && !(await userAllowedToCreateCourse(session.user.id))) {
                 return {error : "Not allowed to create course (max 2 courses per user)" , courseID: null};
             }
 
