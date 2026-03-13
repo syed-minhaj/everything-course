@@ -30,21 +30,21 @@ export const generateCourse = createServerFn({method: 'POST'})
             const { topic, userContext, depthLevel } = await data;
             const session = await auth.api.getSession({ headers: getRequestHeaders()});
             if (!session || !session.user) {
-                return {error : "Not logged in" , courseID: null};
+                return {error : "Not logged in" , course: null};
             }
             const AdminID = process.env.ADMIN_ID;
             if (session.user.id !== AdminID && !(await userAllowedToCreateCourse(session.user.id))) {
-                return {error : "Not allowed to create course (max 2 courses per user)" , courseID: null};
+                return {error : "Not allowed to create course (max 2 courses per user)" , course: null};
             }
 
             const {success , course } = await geminiGenerator({course : {topic, userContext, depthLevel}})
-            if (!success) return {error : "Failed to generate course" , courseID: null};
-            const courseCreated = await db.insert(courses).values({courseTitle: course.course_title, introSummary: course.intro_summary , createrId : session.user.id}).returning({id : courses.id});
-            if (!courseCreated) return {error : "Failed to create course", courseID: null};
+            if (!success) return {error : "Failed to generate course" , course: null};
+            const courseCreated = await db.insert(courses).values({courseTitle: course.course_title, introSummary: course.intro_summary , createrId : session.user.id}).returning({id : courses.id , title : courses.courseTitle});
+            if (!courseCreated) return {error : "Failed to create course", course: null};
             const courseID = courseCreated[0].id;
             for (const module of course.modules) {
                 const moduleCreated = await db.insert(modules).values({courseId : courseID, title : module.title, conceptualDeepDive : module.conceptual_deep_dive}).returning({id : modules.id});
-                if (!moduleCreated) return {error : "Failed to create module" ,courseID: null};
+                if (!moduleCreated) return {error : "Failed to create module" ,course: null};
                 const moduleID = moduleCreated[0].id;
                 for (const resource of module.external_resources) {
                     await db.insert(externalResources).values({moduleId : moduleID, type : resource.type, title : resource.title, url : resource.url});
@@ -57,12 +57,12 @@ export const generateCourse = createServerFn({method: 'POST'})
                 }
             }
             console.log("success")
-            return {error : null , courseID : courseID}
+            return {error : null , course: {id : courseID , title : courseCreated[0].title}};
 
         }catch(e ){
             console.error(e)
-            if (e instanceof Error) return {error : e.message , courseID: null}
-            else return {error : "Unknown error" , courseID: null}
+            if (e instanceof Error) return {error : e.message , course: null}
+            else return {error : "Unknown error" , course: null}
         }
 });
 

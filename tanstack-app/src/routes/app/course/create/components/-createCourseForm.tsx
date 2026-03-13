@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { generateCourse } from "@/server/course";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LoaderCircle } from "lucide-react";
 
 export interface DiscoveryData {
     topic: string;
@@ -21,6 +23,7 @@ export default function CreateCourseForm() {
     const a  = useServerFn(generateCourse)
     const navigate = useNavigate()
     const [creatingCourse, setCreatingCourse] = useState(false)
+    const [course, setCourse] = useState<{id : string , title : string}|null>(null)
     const [values, setValues] = useState<DiscoveryData>({
         topic: "",
         userContext: "",
@@ -41,27 +44,15 @@ export default function CreateCourseForm() {
 
     const handleNext = async() => {
         setCreatingCourse(true)
-        toast.loading("Creating course..." , {
-            id : "creatingCourse",
-        })
-        const { error , courseID } = await a({data : values})
+        const { error , course } = await a({data : values})
         if (error) { 
             if (error == "Not logged in") {
                 navigate({to : "/app/auth/$authView" , params : {authView : "login"}})
             }
             toast.error(error) 
         }
-        toast.dismiss("creatingCourse")
-        if (courseID) {
-            toast.success("Course created successfully")
-            toast('View Course' , {
-                duration: 5000,
-                action : {
-                    label : "View",
-                    onClick : () => {navigate({to : "/app/course/$courseID" , params : {courseID : courseID }})},
-                }
-            })
-        }
+        if (course) setCourse(course)
+        
         setCreatingCourse(false)
         setValues({
             topic: "",
@@ -72,6 +63,32 @@ export default function CreateCourseForm() {
 
     return (
         <div  className="w-full md:w-5/6 md:mt-12 p-6 space-y-8   ">
+            <Dialog open={creatingCourse || (course ? true : false)}  >
+                <DialogContent className="flex flex-col items-center justify-center border-2 bg-bg2" 
+                    showCloseButton={(course ? true : false)} onDialogClose={() => {setCourse(null)}}>
+                    <DialogHeader>
+                        <DialogTitle className="text-xl">
+                            {course ? "Course Created" : "Creating Course"}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    {course ? 
+                        <div>
+                            <h2 className="text-lg pb-4 text-center ">{course.title}</h2>
+                            <Link to="/app/course/$courseID" params={{courseID: course.id}} className="mt-4 text-center">
+                                <Button variant="outline" className="w-full">
+                                    View Course
+                                </Button>
+                            </Link>
+                        </div>
+                    :
+                        <div>Could take a minute or so. Please wait...</div>
+                    }
+                    {!course && 
+                        <LoaderCircle className="animate-spin " size={80} strokeWidth={0.5} /> 
+                    }
+                </DialogContent>
+            </Dialog>
             {/* Topic Field */}
             <div className="space-y-2">
                 <Label htmlFor="topic" className="text-sm font-semibold tracking-tight">
