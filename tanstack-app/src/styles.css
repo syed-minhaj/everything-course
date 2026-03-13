@@ -9,7 +9,7 @@
 :root {
     --bg1: #FFFAFA;
     --bg2: #FFFFFF;
-    --background: oklch(1 0 0);
+    --background: var(--bg1);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
@@ -46,7 +46,7 @@
 :root.dark {
     --bg1: #20242D;
     --bg2: #33343C;
-    --background: oklch(0.145 0 0);
+    --background: var(--bg1) ; 
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
     --card-foreground: oklch(0.985 0 0);
