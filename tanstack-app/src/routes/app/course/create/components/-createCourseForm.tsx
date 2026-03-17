@@ -50,15 +50,16 @@ export default function CreateCourseForm() {
                 navigate({to : "/app/auth/$authView" , params : {authView : "login"}})
             }
             toast.error(error) 
+        }else {
+            setValues({
+                topic: "",
+                userContext: "",
+                depthLevel: "Standard",
+            })
         }
         if (course) setCourse(course)
         
         setCreatingCourse(false)
-        setValues({
-            topic: "",
-            userContext: "",
-            depthLevel: "Standard",
-        })
      };
 
     return (
