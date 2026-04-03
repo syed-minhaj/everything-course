@@ -76,7 +76,7 @@ Output Format: Return valid JSON only. Schema:
                     "rubric": ["Criteria 1", "Criteria 2", "Criteria 3"]
                 },
                 "quick_quiz": [
-                    { "question": "string", "options": ["A", "B", "C"], "answer": "A" }
+                    { "question": "string", "options": ["A", "B", "C"], "answer": "A" } // answer will be of one char 'A', 'B', 'C', 'D'
                 ]
             }
         }
@@ -121,19 +121,22 @@ async function generateGeneralCourse(
     };
 
     try {
+        
             const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-3.1-flash-lite-preview",
                 contents: prompt,
                 config: {
                     temperature: 0.2,
-                    tools: [groundingTool],
+                    tools: [],
                 },
             });
             if (!response.text) {
                 throw new Error("No response text")
             }
+            console.log(response.text)
             const json = safeParseJson(response.text);
             const parsed = courseSchema.safeParse(json)
+            console.log(parsed)
             if (!parsed.success) {
                 throw new Error("Failed to parse JSON")
             }
@@ -194,3 +197,18 @@ async function main({course} : {course : CourseParams}) : Promise<{success : tru
 
 export {main as geminiGenerator}
 
+// Add this helper to your gemini.ts
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    if (error.status === 429 && retries > 0) {
+      console.warn(`Rate limited. Retrying in ${delay}ms...`);
+      await sleep(delay);
+      return withRetry(fn, retries - 1, delay * 2); // Double the delay
+    }
+    throw error;
+  }
+}
