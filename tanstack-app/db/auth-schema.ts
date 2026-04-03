@@ -13,7 +13,10 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+}, (table) => [
+    index("user_id_idx").on(table.id),
+    index("user_email_idx").on(table.email),
+]);
 
 export const session = pgTable(
   "session",

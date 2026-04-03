@@ -7,6 +7,7 @@ import {
     jsonb,
     primaryKey,
     pgEnum,
+    index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import {user, userToCourseTaken} from  "./auth-schema";
@@ -19,7 +20,10 @@ export const courses = pgTable("courses", {
     courseTitle: varchar("course_title", { length: 255 }).notNull(),
     introSummary: text("intro_summary").notNull(),
     createrId: text("creater_id").notNull(),
-});
+}, (table) => [
+    index("course_id_idx").on(table.id),
+    index("course_createrId_idx").on(table.createrId),
+]);
 
 /* ================= MODULE ================= */
 export const modules = pgTable("modules", {
@@ -29,7 +33,10 @@ export const modules = pgTable("modules", {
         .notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     conceptualDeepDive: text("conceptual_deep_dive").notNull(),
-});
+} , (table) => [
+    index("module_courseId_idx").on(table.courseId),
+    index("module_title_idx").on(table.title),
+]);
 
 /* ================= EXTERNAL RESOURCES ================= */
 export const externalResources = pgTable("external_resources", {
@@ -40,7 +47,9 @@ export const externalResources = pgTable("external_resources", {
     type: typeEnum("type").notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     url: text("url").notNull(),
-});
+} , (table) => [
+    index("external_resources_moduleId_idx").on(table.moduleId),
+]);
 
 /* ================= PRIMARY MISSION ================= */
 export const primaryMissions = pgTable("primary_missions", {
@@ -51,7 +60,9 @@ export const primaryMissions = pgTable("primary_missions", {
     title: varchar("title", { length: 255 }).notNull(),
     instructions: text("instructions").notNull(),
     rubric: jsonb("rubric").$type<string[]>().notNull(),
-});
+} , (table) => [
+    index("primary_missions_moduleId_idx").on(table.moduleId),
+]);
 
 /* ================= QUICK QUIZ ================= */
 export const quickQuizzes = pgTable("quick_quizzes", {
@@ -62,7 +73,9 @@ export const quickQuizzes = pgTable("quick_quizzes", {
     question: text("question").notNull(),
     options: jsonb("options").$type<string[]>().notNull(),
     answer: varchar("answer", { length: 10 }).notNull(),
-});
+} , (table) => [
+    index("quick_quizzes_moduleId_idx").on(table.moduleId),
+]);
 
 export const userToQuickQuizzesPassed = pgTable("user_to_quick_quizzes_passed", {
     userId: text("user_id")
