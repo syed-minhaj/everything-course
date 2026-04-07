@@ -45,11 +45,14 @@ function App() {
                             <Link to="/app/course/create" className="bg-amber-400 text-primary-foreground px-8 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1">
                                 Create My Course <ArrowRight className="w-5 h-5" />
                             </Link>
+                            <Link to="/app/course" className="border-amber-400 border-2 text-primary-foreground px-8 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all hover:-translate-y-1">
+                                View Course Library
+                            </Link>
                         </div>
                         <div className="flex items-center justify-center lg:justify-start gap-4 text-sm text-muted-foreground">
                             <div className="flex -space-x-2">
                                 {[1,2,3,4].map(i => (
-                                <div key={i} className="w-8 h-8 rounded-full border-2 border-bg1 bg-muted flex items-center justify-center text-[10px] font-bold">U{i}</div>
+                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-bg1 bg-muted flex items-center justify-center text-[10px] font-bold">U{i}</div>
                                 ))}
                             </div>
                             <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-amber-400 text-amber-400 border-none" /> 4.9/5 by 20k+ learners</span>
