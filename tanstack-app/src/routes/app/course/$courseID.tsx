@@ -105,7 +105,9 @@ function RouteComponent() {
                                 <button onClick={() => join({courseID: course.id , moduleID : course.modules[0].id})} 
                                 className='w-37 py-4 text-center rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Join Coure</button>
                             }
-                            <a href="#detail" className='w-37 py-4 text-center rounded-sm  bg-[#919191]'>Learn More</a>
+                            <Link to="/app/course/$courseID/$moduleID" params={{courseID : course.id , moduleID:course.modules[course.moduleI].id}} className='w-37 py-4 text-center rounded-sm  bg-[#919191]' disabled={isLoading} >
+                                View Course
+                            </Link>
                         </div>
                     </div>
                 </div>
