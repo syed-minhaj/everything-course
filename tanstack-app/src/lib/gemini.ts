@@ -42,7 +42,7 @@ const ai = new GoogleGenAI({
 
 function buildPrompt({ topic, userContext, depthLevel }: CourseParams): string {
     return `
-You are a Universal Course Architect. Design a learning path for the following request.
+You are a Universal Course Architect. Design a detailed learning path for the following request.
 User Request:
 - Topic: ${topic}
 - Context/Goal: ${userContext}
@@ -50,13 +50,14 @@ User Request:
 
 Directives:
 1. Variable Structure: Decide the number of modules based on the topic.
-2. Detailed Content: Provide deep explanations, not just headings.
-3. Verified Links: Use Google Search to find real working URLs .
-4. Use Google Search to find REAL.
-5. MANDATORY: For youtube video don't search for url just return empty string "" .
-6. Include good mix of articles and youtube videos.
-7. Conceptual deep dives must be detailed (10 words).
-8. Hybrid Assessment (90/10 Split):
+2. Course should be large and detailed enough to cover user's goal.
+3. Detailed Content: Provide deep explanations, not just headings.
+4. Verified Links: Use Google Search to find real working URLs .
+5. Use Google Search to find REAL.
+6. MANDATORY: For youtube video don't search for url just return title and empty string "" for url .
+7. Include good mix of articles and youtube videos.
+8. Conceptual deep dives must be detailed (10 words).
+9. Hybrid Assessment (90/10 Split):
    - PRIMARY: Practical Mission
    - SECONDARY: Quick Check (1 MCQs)
 
