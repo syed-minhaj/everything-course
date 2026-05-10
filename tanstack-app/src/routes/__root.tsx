@@ -1,6 +1,7 @@
-import { HeadContent, Link, RootRoute, Router, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { useEffect } from 'react'
 import appCss from '../styles.css?url'
 import { getThemeServerFn } from '@/lib/theme'
 import "@fontsource/irish-grover";
@@ -43,9 +44,20 @@ export const Route = createRootRoute({
 })
 
 
+function setCurrentURL() {
+    const currentURL = new URL(window.location.href)
+    if (!currentURL.href.includes('/app/auth')){
+        localStorage.setItem('currentURL', currentURL.href)
+    }
+}
+
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const theme = Route.useLoaderData()
+  useEffect(() => {
+    setCurrentURL()
+  })
+
   return (
     <html className={theme}  lang="en" suppressHydrationWarning>
       <head>
