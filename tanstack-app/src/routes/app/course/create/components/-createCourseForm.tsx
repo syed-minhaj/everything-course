@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,17 @@ export default function CreateCourseForm() {
         userContext: "",
         depthLevel: "Standard",
     });
+
+    useEffect(() => {
+        const course = localStorage.getItem('course')
+        if (course) {
+            setValues(JSON.parse(course))
+        }
+    }, [])
+
+    useEffect(() => {
+        localStorage.setItem('course' , JSON.stringify(values))
+    }, [values])
 
     const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setValues((prev) => ({ ...prev, topic: e.target.value }));
