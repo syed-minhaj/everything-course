@@ -13,6 +13,7 @@ import { relations } from "drizzle-orm";
 import {user, userToCourseTaken} from  "./auth-schema";
 
 const typeEnum = pgEnum('text', ["article" , "youtube video" , "podcast"]);
+const accessEnum = pgEnum('text', ["public" , "private"]);
 
 /* ================= COURSE ================= */
 export const courses = pgTable("courses", {
@@ -20,6 +21,7 @@ export const courses = pgTable("courses", {
     courseTitle: varchar("course_title", { length: 255 }).notNull(),
     introSummary: text("intro_summary").notNull(),
     createrId: text("creater_id").notNull(),
+    access : accessEnum("access").notNull().default("public"),
 }, (table) => [
     index("course_id_idx").on(table.id),
     index("course_createrId_idx").on(table.createrId),
