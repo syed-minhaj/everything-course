@@ -2,7 +2,7 @@ import { db } from '@/lib/drizzle'
 import { createFileRoute } from '@tanstack/react-router'
 import { courses, modules } from 'db/schema'
 import CoursePreview, { CourseSkeleton } from './components/-coursePreview'
-import { count, eq , ilike} from 'drizzle-orm'
+import { count, eq , ilike, sql , desc} from 'drizzle-orm'
 import { createServerFn } from '@tanstack/react-start'
 import { useEffect, useRef } from 'react'
 import {useInfiniteQuery} from "@tanstack/react-query"
@@ -29,13 +29,27 @@ const getCourses = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
+                rank: sql<number>`
+                    ts_rank(
+                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                        setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
+                        websearch_to_tsquery('english', ${data.search})
+                    )
+                `,
             })
             .from(courses)
             .where(
                 data.search
-                    ? ilike(courses.courseTitle, `%${data.search}%`)
-                    : undefined
+                    ? sql`(
+                        setweight(to_tsvector('english', coalesce(${courses.courseTitle}, '')), 'A') ||
+                        setweight(to_tsvector('english', coalesce(${courses.introSummary}, '')), 'B')
+                    ) @@ websearch_to_tsquery('english', ${data.search})`: undefined
             )
+            .orderBy(desc(sql`ts_rank(
+                setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
+                websearch_to_tsquery('english', ${data.search})
+            )`))
             .leftJoin(modules, eq(courses.id, modules.courseId))
             .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data.pageParam ?? 0)
     }

@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { courses, modules } from 'db/schema'
 import { userToCourseTaken } from 'db/auth-schema'
 import CoursePreview, { CourseSkeleton } from '../course/components/-coursePreview'
-import { count, eq , and , ilike} from 'drizzle-orm'
+import { count, eq , and , ilike, sql , desc} from 'drizzle-orm'
 import { createMiddleware, createServerFn } from '@tanstack/react-start'
 import { useEffect, useRef } from 'react'
 import {useInfiniteQuery} from "@tanstack/react-query"
@@ -45,13 +45,29 @@ const getCoursesCreated = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
+                rank: sql<number>`
+                    ts_rank(
+                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                        setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
+                        websearch_to_tsquery('english', ${data.search})
+                    )
+                `,
             })
-            .from(courses).where(and(
+            .from(courses)
+            .where(and(
                 eq(courses.createrId , user.id),
                 data.search
-                    ? ilike(courses.courseTitle, `%${data.search}%`)
+                    ? sql`(
+                        setweight(to_tsvector('english', coalesce(${courses.courseTitle}, '')), 'A') ||
+                        setweight(to_tsvector('english', coalesce(${courses.introSummary}, '')), 'B')
+                    ) @@ websearch_to_tsquery('english', ${data.search})`
                     : undefined
             ))
+            .orderBy(desc(sql`ts_rank(
+                setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
+                websearch_to_tsquery('english', ${data.search})
+            )`))
             .leftJoin(modules, eq(courses.id, modules.courseId))
             .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data.pageParam ?? 0)
     }
@@ -70,16 +86,30 @@ const getCoursesTaken = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
-                
+                rank: sql<number>`
+                    ts_rank(
+                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                        setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
+                        websearch_to_tsquery('english', ${data.search})
+                    )
+                `,
             })
             .from(courses)
             .innerJoin(userToCourseTaken, eq(courses.id, userToCourseTaken.courseId))
             .where(and(
                 eq(userToCourseTaken.userId , user.id), 
                 data.search
-                    ? ilike(courses.courseTitle, `%${data.search}%`)
+                    ? sql`(
+                        setweight(to_tsvector('english', coalesce(${courses.courseTitle}, '')), 'A') ||
+                        setweight(to_tsvector('english', coalesce(${courses.introSummary}, '')), 'B')
+                    ) @@ websearch_to_tsquery('english', ${data.search})`
                     : undefined
             ))
+            .orderBy(desc(sql`ts_rank(
+                setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
+                websearch_to_tsquery('english', ${data.search})
+            )`))
             .leftJoin(modules, eq(courses.id, modules.courseId))
             .groupBy(courses.id).limit(COURSES_PER_PAGE).offset(data.pageParam ?? 0)
     }
