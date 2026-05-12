@@ -13,7 +13,8 @@ import { eq } from "drizzle-orm";
 const courseInputSchema = z.object({
     topic: z.string(),
     userContext: z.string(),
-    depthLevel: z.string()
+    depthLevel: z.string(),
+    access: z.enum(["public" , "private"]).default("public"),
 })
 
 const userAllowedToCreateCourse = async(userID : string) => {
@@ -39,7 +40,7 @@ export const generateCourse = createServerFn({method: 'POST'})
 
             const {success , course } = await geminiGenerator({course : {topic, userContext, depthLevel}})
             if (!success) return {error : "Failed to generate course" , course: null};
-            const courseCreated = await db.insert(courses).values({courseTitle: course.course_title, introSummary: course.intro_summary , createrId : session.user.id}).returning({id : courses.id , title : courses.courseTitle});
+            const courseCreated = await db.insert(courses).values({courseTitle: course.course_title, introSummary: course.intro_summary , createrId : session.user.id , access : data.access}).returning({id : courses.id , title : courses.courseTitle});
             if (!courseCreated) return {error : "Failed to create course", course: null};
             const courseID = courseCreated[0].id;
             for (const module of course.modules) {

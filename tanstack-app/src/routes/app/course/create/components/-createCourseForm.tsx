@@ -10,11 +10,13 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LoaderCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export interface DiscoveryData {
     topic: string;
     userContext: string;
     depthLevel: typeof DEPTH_LABELS[number];
+    access: "public" | "private";
 }
 
 const DEPTH_LABELS = ["Surface Level", "Standard", "Deep Dive", "Academic"] as const;
@@ -28,6 +30,7 @@ export default function CreateCourseForm() {
         topic: "",
         userContext: "",
         depthLevel: "Standard",
+        access: "public",
     });
 
     useEffect(() => {
@@ -53,6 +56,10 @@ export default function CreateCourseForm() {
         setValues((prev) => ({ ...prev, depthLevel: DEPTH_LABELS[val[0]] }));
     };
 
+    const handleAccessChange = (val: boolean) => {
+        setValues((prev) => ({ ...prev, access: val ? "private" : "public" }));
+    };
+
     const handleNext = async() => {
         setCreatingCourse(true)
         const { error , course } = await a({data : values})
@@ -66,6 +73,7 @@ export default function CreateCourseForm() {
                 topic: "",
                 userContext: "",
                 depthLevel: "Standard",
+                access: "public",
             })
         }
         if (course) setCourse(course)
@@ -131,30 +139,44 @@ export default function CreateCourseForm() {
                 />
             </div>
 
-            {/* Depth Level Field */}
-            <div className="space-y-4 w-md max-w-full">
-                <div className="flex justify-between items-end">
-                    <Label className="text-sm font-semibold tracking-tight">
-                        Depth Level
-                    </Label>
-                    <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground">
-                        {values.depthLevel}
-                    </span>
+            <div className="flex flex-row justify-between flex-wrap w-full gap-8">
+                {/* Depth Level Field */}
+                <div className="space-y-4 w-md max-w-full ">
+                    <div className="flex justify-between items-end">
+                        <Label className="text-sm font-semibold tracking-tight">
+                            Depth Level
+                        </Label>
+                        <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground">
+                            {values.depthLevel}
+                        </span>
+                    </div>
+                    <div className="px-1">
+                        <Slider
+                            disabled={creatingCourse}
+                            defaultValue={[1]}
+                            max={3}
+                            step={1}
+                            onValueChange={handleSliderChange}
+                            aria-label="Depth selection slider"
+                        />
+                    </div>
+                    <div className="flex justify-between w-full px-1 text-[10px] uppercase font-medium text-muted-foreground tracking-widest">
+                        <span>Intro</span>
+                        <span>Expert</span>
+                    </div>
                 </div>
-                <div className="px-1">
-                    <Slider
-                        disabled={creatingCourse}
-                        defaultValue={[1]}
-                        max={3}
-                        step={1}
-                        onValueChange={handleSliderChange}
-                        aria-label="Depth selection slider"
+                {/* Access Field using Switch Shadcn */}
+                <div className="flex items-center justify-between gap-2 ml-auto pr-1">
+                    <Label className="text-sm font-semibold tracking-tight whitespace-pre">
+                        {values.access === "public" ? "Public " : "Private"}
+                    </Label>
+                    <Switch
+                        checked={values.access === "private"}
+                        onCheckedChange={handleAccessChange}
+                        className="w-8 h-4 bg-secondary-foreground"
                     />
                 </div>
-                <div className="flex justify-between w-full px-1 text-[10px] uppercase font-medium text-muted-foreground tracking-widest">
-                    <span>Intro</span>
-                    <span>Expert</span>
-                </div>
+                
             </div>
 
             {/* Action Area */}
