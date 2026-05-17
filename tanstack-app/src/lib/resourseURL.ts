@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 
 
 const API_KEY = process.env.YOUTUBE_API_KEY!;
@@ -24,6 +25,25 @@ async function getYoutubeUrl({title} : {title: string}){
     return {id : data.items[0].id.videoId , title : data.items[0].snippet.title };
 }
 
+async function getYoutubeTop10Result({title} : {title: string}){
+    const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?${new URLSearchParams({
+            part: "snippet",
+            q: title,
+            type: "video",
+            order: "relevance",
+            videoDefinition: "high",
+            regionCode: "US",
+            relevanceLanguage: "en",
+            maxResults: "10",
+            key: API_KEY,
+        })}`
+    );
+    const data = await response.json();
+    return data.items
+}
+
+
 async function getOtherUrl({url} : {url: string}){
     const response = await fetch(url, {
         method: "HEAD",
@@ -37,4 +57,5 @@ async function getOtherUrl({url} : {url: string}){
     return finalUrl;
 }
 
-export {getYoutubeUrl , getOtherUrl}
+
+export {getYoutubeUrl , getOtherUrl , getYoutubeTop10Result }
