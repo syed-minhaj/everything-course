@@ -2,7 +2,7 @@
 import { GoogleGenAI, ApiError } from "@google/genai";
 import { courseType } from "@/types";
 import {z} from "zod"
-import {getYoutubeUrl , getOtherUrl} from "./resourseURL";
+import { getOtherUrl, getYoutubeTop10Result} from "./resourseURL";
 
 export const courseSchema = z.object({
     "course_title": z.string(),
@@ -54,10 +54,13 @@ Directives:
 3. Detailed Content: Provide deep explanations, not just headings.
 4. Verified Links: Use Google Search to find real working URLs .
 5. Use Google Search to find REAL.
-6. MANDATORY: For youtube video don't search for url just return title and empty string "" for url .
+6. For youtube video resources, call the searchYoutube tool with a relevant query. 
+   From the results, pick the best matching video based on title discription relevance to the module topic.
+   Use the video id to set the url as: https://www.youtube.com/embed/{id}
 7. Include good mix of articles and youtube videos.
 8. Conceptual deep dives must be detailed (10 words).
-9. Hybrid Assessment (90/10 Split):
+9. Modules should be named as "Module [no]: [module Title]"
+10. Hybrid Assessment (90/10 Split):
    - PRIMARY: Practical Mission
    - SECONDARY: Quick Check (1 MCQs)
 
@@ -111,79 +114,118 @@ function safeParseJson(text: string): any {
 }
 
 
-async function generateGeneralCourse(
-    params: CourseParams
-): Promise<courseType> {
+async function generateGeneralCourse(params: CourseParams): Promise<courseType> {
     const prompt = buildPrompt(params);
 
-    const groundingTool = {
-        urlContext: {},
-        googleSearch: {},
-    };
-
     try {
-        
-            const response = await ai.models.generateContent({
-                model: "gemini-3.1-flash-lite-preview",
-                contents: prompt,
-                config: {
-                    temperature: 0.2,
-                    tools: [],
-                },
-            });
-            if (!response.text) {
-                throw new Error("No response text")
+        const courseResponse = await ai.models.generateContent({
+            model: 'gemini-3.1-flash-lite-preview',
+            contents: prompt,
+            config: { temperature: 0.2 },
+        });
+
+        if (!courseResponse.text) throw new Error('No response text');
+
+        const json = safeParseJson(courseResponse.text);
+        const parsed = courseSchema.safeParse(json);
+        if (!parsed.success) throw new Error('Failed to parse JSON');
+
+        const course: courseType = parsed.data;
+
+        type VideoRef = {
+            moduleIdx: number;
+            resIdx: number;
+            title: string;
+            results: Awaited<ReturnType<typeof getYoutubeTop10Result>>;
+        };
+
+        const searchPromises: Promise<VideoRef>[] = [];
+
+        for (let moduleIdx = 0; moduleIdx < course.modules.length; moduleIdx++) {
+            const module = course.modules[moduleIdx];
+            for (let resIdx = 0; resIdx < module.external_resources.length; resIdx++) {
+                const res = module.external_resources[resIdx];
+                if (res.type !== 'youtube video') continue;
+
+                searchPromises.push(
+                    getYoutubeTop10Result({ title: res.title }).then((results) => ({
+                        moduleIdx,
+                        resIdx,
+                        title: res.title,
+                        results,
+                    }))
+                );
             }
-            console.log(response.text)
-            const json = safeParseJson(response.text);
-            const parsed = courseSchema.safeParse(json)
-            console.log(parsed)
-            if (!parsed.success) {
-                throw new Error("Failed to parse JSON")
-            }
-            const course : courseType = parsed.data
-            
-            for (const module of course.modules) {
-                const validatedResources = [] ;
+        }
+
+        const allSearchResults = await Promise.all(searchPromises);
+
+        const selectionPrompt = `
+            You previously generated this course:
+            ${JSON.stringify(course, null, 2)}
+
+            For each YouTube video resource, I searched YouTube and got these results.
+            Pick the single best video for each based on relevance to the module topic.
+
+            Search Results:
+            ${JSON.stringify(
+                allSearchResults.map((s) => ({
+                    moduleIdx: s.moduleIdx,
+                    resIdx: s.resIdx,
+                    originalTitle: s.title,
+                    results: s.results,
+                })),
+                null,
+                2
+            )}
+
+            Return a JSON array only. Each item: { "moduleIdx": number, "resIdx": number, "id": string, "title": string }
+            So your return type should be: 
+            {"moduleIdx": number, "resIdx": number, "id": string, "title": string}[]
+            No extra commentary.
+            `;
+
+        const selectionResponse = await ai.models.generateContent({
+            model: 'gemini-3.1-flash-lite-preview',
+            contents: selectionPrompt,
+            config: { temperature: 0.1 },
+        });
+
+        if (!selectionResponse.text) throw new Error('No selection response text');
+
+        const selections: { moduleIdx: number; resIdx: number; id: string; title: string }[] =
+            safeParseJson(selectionResponse.text);
+
+        for (const sel of selections) {
+            const res = course.modules[sel.moduleIdx].external_resources[sel.resIdx];
+            res.title = sel.title;
+            res.url = `https://www.youtube.com/embed/${sel.id}`;
+        }
+
+        await Promise.all(
+            course.modules.map(async (module) => {
+                const validatedResources = [];
                 for (const res of module.external_resources) {
-                    if (res.type === "youtube video"){
-                        let youtubeRes ;
-                        let tryCount = 0;
-                        while (!youtubeRes && tryCount < 3) {
-                            tryCount++;
-                            youtubeRes = await getYoutubeUrl({title : res.title })
-                        }
-                        if (!youtubeRes) continue;
-                        res.title = youtubeRes.title;
-                        res.url = `https://www.youtube.com/embed/${youtubeRes.id}`;
-                    }else{
-                        let otherRes ;
-                        let tryCount = 0;
-                        while (!otherRes && tryCount < 3) {
-                            tryCount++;
-                            otherRes = await getOtherUrl({url : res.url })
-                        }
+                    if (res.type !== 'youtube video') {
+                        const otherRes = await getOtherUrl({ url: res.url });
                         if (!otherRes) continue;
                         res.url = otherRes;
                     }
-                    validatedResources.push(res);  
+                    validatedResources.push(res);
                 }
                 module.external_resources = validatedResources;
-            }
-            return course
-        
+            })
+        );
+
+        return course;
+
     } catch (err: unknown) {
         if (err instanceof ApiError) {
-            // structured API error from SDK
-            throw new Error(
-                `GenAI ApiError: ${err.name} ${err.status} ${err.message}`
-            );
+            throw new Error(`GenAI ApiError: ${err.name} ${err.status} ${err.message}`);
         }
-        
         throw err as Error;
     }
 }
-
 
 async function main({course} : {course : CourseParams}) : Promise<{success : true , course : courseType} | {success : false , course : null}> {
    
@@ -197,19 +239,3 @@ async function main({course} : {course : CourseParams}) : Promise<{success : tru
 }
 
 export {main as geminiGenerator}
-
-// Add this helper to your gemini.ts
-const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
-
-async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> {
-  try {
-    return await fn();
-  } catch (error: any) {
-    if (error.status === 429 && retries > 0) {
-      console.warn(`Rate limited. Retrying in ${delay}ms...`);
-      await sleep(delay);
-      return withRetry(fn, retries - 1, delay * 2); // Double the delay
-    }
-    throw error;
-  }
-}
