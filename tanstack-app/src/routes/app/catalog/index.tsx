@@ -45,23 +45,15 @@ const getCoursesCreated = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
-                rank: sql<number>`
-                    ts_rank(
-                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
-                        setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
-                        websearch_to_tsquery('english', ${data.search})
-                    )
-                `,
             })
             .from(courses)
             .where(and(
                 eq(courses.createrId , user.id),
                 data.search
                     ? sql`(
-                        setweight(to_tsvector('english', coalesce(${courses.courseTitle}, '')), 'A') ||
-                        setweight(to_tsvector('english', coalesce(${courses.introSummary}, '')), 'B')
-                    ) @@ websearch_to_tsquery('english', ${data.search})`
-                    : undefined
+                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                        setweight(to_tsvector('english', ${courses.introSummary}), 'B')
+                    ) @@ websearch_to_tsquery('english', ${data.search})`: undefined
             ))
             .orderBy(desc(sql`ts_rank(
                 setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
@@ -86,13 +78,6 @@ const getCoursesTaken = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
-                rank: sql<number>`
-                    ts_rank(
-                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
-                        setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
-                        websearch_to_tsquery('english', ${data.search})
-                    )
-                `,
             })
             .from(courses)
             .innerJoin(userToCourseTaken, eq(courses.id, userToCourseTaken.courseId))
@@ -100,10 +85,9 @@ const getCoursesTaken = createServerFn()
                 eq(userToCourseTaken.userId , user.id), 
                 data.search
                     ? sql`(
-                        setweight(to_tsvector('english', coalesce(${courses.courseTitle}, '')), 'A') ||
-                        setweight(to_tsvector('english', coalesce(${courses.introSummary}, '')), 'B')
-                    ) @@ websearch_to_tsquery('english', ${data.search})`
-                    : undefined
+                            setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                            setweight(to_tsvector('english', ${courses.introSummary}), 'B')
+                        ) @@ websearch_to_tsquery('english', ${data.search})`: undefined
             ))
             .orderBy(desc(sql`ts_rank(
                 setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||

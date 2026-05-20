@@ -29,13 +29,6 @@ const getCourses = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
-                rank: sql<number>`
-                    ts_rank(
-                        setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
-                        setweight(to_tsvector('english', ${courses.introSummary}), 'B'),
-                        websearch_to_tsquery('english', ${data.search})
-                    )
-                `,
             })
             .from(courses)
             .where(
@@ -43,8 +36,8 @@ const getCourses = createServerFn()
                     eq(courses.access , "public"),
                     data.search
                         ? sql`(
-                            setweight(to_tsvector('english', coalesce(${courses.courseTitle}, '')), 'A') ||
-                            setweight(to_tsvector('english', coalesce(${courses.introSummary}, '')), 'B')
+                            setweight(to_tsvector('english', ${courses.courseTitle}), 'A') ||
+                            setweight(to_tsvector('english', ${courses.introSummary}), 'B')
                         ) @@ websearch_to_tsquery('english', ${data.search})`: undefined
                 )
             )
