@@ -10,7 +10,7 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
-    "drizzle": "drizzle-kit generate && drizzle-kit push",
+    "drizzle": "drizzle-kit generate && drizzle-kit migrate",
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
@@ -60,7 +60,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.30.6",
     "jsdom": "^27.4.0",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
