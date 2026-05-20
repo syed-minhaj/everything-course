@@ -9,7 +9,7 @@ import {
     pgEnum,
     index,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {user, userToCourseTaken} from  "./auth-schema";
 
 const typeEnum = pgEnum('text', ["article" , "youtube video" , "podcast"]);
@@ -25,6 +25,10 @@ export const courses = pgTable("courses", {
 }, (table) => [
     index("course_id_idx").on(table.id),
     index("course_createrId_idx").on(table.createrId),
+    index("courses_search_vector_idx").using("gin", sql`
+        setweight(to_tsvector('english', ${table.courseTitle}), 'A') ||
+        setweight(to_tsvector('english', ${table.introSummary}), 'B')
+    `),
 ]);
 
 /* ================= MODULE ================= */
