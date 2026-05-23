@@ -6,6 +6,7 @@ import appCss from '../styles.css?url'
 import { getThemeServerFn } from '@/lib/theme'
 import "@fontsource/irish-grover";
 import TopLoader from '@/components/topLoader'
+import { Toaster } from '@/components/ui/sonner'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -81,6 +82,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body suppressHydrationWarning >
             <TopLoader color={"var(--primary)"} showSpinner={false} />
             {children}
+            <Toaster position="top-center"/>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
