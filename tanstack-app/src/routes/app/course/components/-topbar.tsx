@@ -1,6 +1,6 @@
 import { useTaskContextValue } from '@/components/taskContextProvider';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger , SelectGroup, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectLabel, SelectTrigger , SelectGroup, SelectValue } from '@/components/ui/select'
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
@@ -11,7 +11,15 @@ type moduleType = {
     conceptualDeepDive: string;
 }
 
-export default function Topbar({modules , moduleID} : {modules : moduleType[] , moduleID : string}) {
+type chapterType = {
+    id: string;
+    courseId: string;
+    title: string;
+    order: number;
+    modules: moduleType[];
+}
+
+export default function Topbar({chapters , modules , moduleID} : {chapters? : chapterType[] , modules : moduleType[] , moduleID : string}) {
 
     const [selectedValue, setSelectedValue] = useState<string>(moduleID)
     const [isNext , setIsNext] = useState(false)
@@ -19,6 +27,13 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
     const selectedModule = modules.find((m) => m.id === selectedValue)
     const {task ,setTask} = useTaskContextValue()
     const navigate = useNavigate()
+
+    function findModuleChapter(moduleId: string): chapterType | undefined {
+        if (!chapters) return undefined;
+        return chapters.find((c) => c.modules.some((m) => m.id === moduleId));
+    }
+
+    const activeChapter = findModuleChapter(selectedValue);
  
     useEffect(() => {
         if (!selectedModule) return
@@ -83,17 +98,28 @@ export default function Topbar({modules , moduleID} : {modules : moduleType[] , 
                 <Select value={selectedValue} onValueChange={setSelectedValue}>
                     <SelectTrigger className='bg-bg2 rounded '>
                             <SelectValue placeholder='Module'>
-                                <span className=''>{selectedModule?.title.split(":")[0]}</span>
+                                <span className=''>{activeChapter ? `${activeChapter.title.split(":")[0]} > ${selectedModule?.title.split(":")[0]}` : selectedModule?.title.split(":")[0]}</span>
                             </SelectValue>
                     </SelectTrigger>
                     <SelectContent className='rounded'>
-                        <SelectGroup className=''>
-                            {modules.map((module , index) => (
-                                <SelectItem key={index} value={module.id} className=''>
-                                    {module.title}
-                                </SelectItem>
-                            ))}
-                        </SelectGroup>
+                        {chapters ? chapters.map((chapter) => (
+                            <SelectGroup key={chapter.id}>
+                                <SelectLabel className='font-semibold text-sm'>{chapter.title}</SelectLabel>
+                                {chapter.modules.map((module) => (
+                                    <SelectItem key={module.id} value={module.id} className='pl-4'>
+                                        {module.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
+                        )) : (
+                            <SelectGroup className=''>
+                                {modules.map((module , index) => (
+                                    <SelectItem key={index} value={module.id} className=''>
+                                        {module.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
+                        )}
                     </SelectContent>
                 </Select>
                 <Select  value={task} onValueChange={setTask}>

@@ -24,7 +24,12 @@ const getCoursee = createServerFn()
         const course = await db.query.courses.findFirst({
             where: (courses , {eq}) => eq(courses.id , data),
             with : {
-                modules : true,
+                chapters : {
+                    orderBy: (chapters, { asc }) => [asc(chapters.order)],
+                    with : {
+                        modules : true
+                    }
+                },
                 student : {
                     where : (student , {eq}) => eq(student.userId , session?.user.id ?? ""),
                     columns : {userId : true}
@@ -52,7 +57,8 @@ const getCoursee = createServerFn()
 
         if (completedModules.length === 0) return Object.assign(course , {moduleI : 0, isCreator: session?.user.id === course.createrId})
 
-        const indexOfNextModule = course.modules.findIndex((module) => 
+        const allModules = course.chapters.flatMap((c) => c.modules);
+        const indexOfNextModule = allModules.findIndex((module) => 
             completedModules.every((completedModule) => completedModule.moduleId !== module.id)
         );
         return Object.assign(course, { 
@@ -105,6 +111,7 @@ export const Route = createFileRoute('/app/course/$courseID')({
 
 function RouteComponent() {
     const course = Route.useLoaderData();
+    const allModules = course.chapters.flatMap((c) => c.modules);
     const joinCourse = useServerFn(joinCourseFn)
     const deleteCourseFn = useServerFn(deleteCourse)
     const [isLoading, setIsLoading] = useState(false)
@@ -145,13 +152,13 @@ function RouteComponent() {
                         <h2 className='font-irish-grover text-2xl sm:text-4xl text-center text-white '>{course.courseTitle}</h2>
                         <div className='flex flex-row gap-6 text-white text-lg font-bold'>
                             {course.student.length > 0 ?  
-                                <Link to="/app/course/$courseID/$moduleID" params={{courseID : course.id , moduleID : course.modules[course.moduleI].id}} 
+                                <Link to="/app/course/$courseID/$moduleID" params={{courseID : course.id , moduleID : allModules[course.moduleI].id}} 
                                 className='w-37 py-4 text-center rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Continue</Link>
                             :
-                                <button onClick={() => join({courseID: course.id , moduleID : course.modules[0].id})} 
+                                <button onClick={() => join({courseID: course.id , moduleID : allModules[0].id})} 
                                 className='w-37 py-4 text-center rounded-sm  bg-[#3A10E5] disabled:opacity-25' disabled={isLoading} >Join Coure</button>
                             }
-                            <Link to="/app/course/$courseID/$moduleID" params={{courseID : course.id , moduleID:course.modules[course.moduleI].id}} className='w-37 py-4 text-center rounded-sm  bg-[#919191]' disabled={isLoading} >
+                            <Link to="/app/course/$courseID/$moduleID" params={{courseID : course.id , moduleID:allModules[course.moduleI].id}} className='w-37 py-4 text-center rounded-sm  bg-[#919191]' disabled={isLoading} >
                                 View Course
                             </Link>
                             {course.isCreator && ( 
@@ -176,15 +183,24 @@ function RouteComponent() {
                     <p className='text-xl/[250%] text-center'>{course.introSummary}</p>
                 </div>
                 <div className='flex flex-col items-center  max-w-11/12'>
-                    <h3 className='font-medium text-2xl/[250%] pb-5'>Modules</h3>
-                    {course.modules.map((module , index) => (
-                        <>
-                            <div key={index} className='pr-4 flex flex-row gap-2 w-full text-lg/[100%] sm:text-xl/[100%]'>
-                                <h6 className='w-fit'>{index + 1}: </h6>
-                                <p className='flex-1'>{module.title}</p>
-                            </div>
-                            {index !== course.modules.length - 1 && <Separator key={index} className="my-4 bg-black/50" />}
-                        </>
+                    <h3 className='font-medium text-2xl/[250%] pb-5'>Chapters</h3>
+                    {course.chapters.map((chapter, ci) => (
+                        <div key={chapter.id} className='w-full'>
+                            <h4 className='font-semibold text-xl/[200%] pb-2'>{chapter.title}</h4>
+                            {chapter.modules.map((module, mi) => {
+                                const globalIndex = course.chapters.slice(0, ci).reduce((sum, c) => sum + c.modules.length, 0) + mi;
+                                return (
+                                    <div key={module.id}>
+                                        <div className='pr-4 flex flex-row gap-2 w-full text-lg/[100%] sm:text-xl/[100%]'>
+                                            <h6 className='w-fit'>{globalIndex + 1}: </h6>
+                                            <p className='flex-1'>{module.title}</p>
+                                        </div>
+                                        {mi !== chapter.modules.length - 1 && <Separator className="my-4 bg-black/50" />}
+                                    </div>
+                                );
+                            })}
+                            {ci !== course.chapters.length - 1 && <Separator className="my-8 bg-black/70" />}
+                        </div>
                     ))}
                 </div>
             </div>

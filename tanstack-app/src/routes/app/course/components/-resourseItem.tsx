@@ -1,6 +1,6 @@
 import { courseType } from "@/types"
 
-type resourseType = courseType["modules"][number]["external_resources"][number] & {
+type resourseType = courseType["chapters"][number]["modules"][number]["external_resources"][number] & {
     id: string;
     moduleId: string;
 }

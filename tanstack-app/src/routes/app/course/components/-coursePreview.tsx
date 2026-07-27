@@ -55,7 +55,10 @@ function CoursePreview({course} : {course : course}) {
                         <h3 className=" font-light opacity-50">Course</h3>
                         <h3 className=" font-medium text-2xl">{course.courseTitle}</h3>
                     </div>
-                    <span className={`opacity-50 w-fit ${courseCompleted && "text-amber-400 opacity-100"} `} >{data.data ?? 0} / {course.no_of_modules}</span>
+                    <div className='flex flex-col items-end gap-1'>
+                        <span className={`opacity-50 w-fit ${courseCompleted && "text-amber-400 opacity-100"} `} >{data.data ?? 0} / {course.no_of_modules}</span>
+                        <span className='text-xs opacity-40'>{course.no_of_chapters} chapters · {course.no_of_modules} modules</span>
+                    </div>
                 </div>
                 <p className="md:w-5/6 ">{course.introSummary}</p>
             </div>
