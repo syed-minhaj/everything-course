@@ -1,8 +1,8 @@
 import { useTaskContextValue } from '@/components/taskContextProvider';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectLabel, SelectTrigger , SelectGroup, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger , SelectGroup, SelectValue } from '@/components/ui/select'
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 type moduleType = {
     id: string;
@@ -19,31 +19,45 @@ type chapterType = {
     modules: moduleType[];
 }
 
-export default function Topbar({chapters , modules , moduleID} : {chapters? : chapterType[] , modules : moduleType[] , moduleID : string}) {
+export default function Topbar({chapters , moduleID} : {chapters : chapterType[] , moduleID : string}) {
 
+    const allModules = useMemo(() => chapters.flatMap((c) => c.modules), [chapters]);
+
+    const [selectedChapterId, setSelectedChapterId] = useState<string>('')
     const [selectedValue, setSelectedValue] = useState<string>(moduleID)
     const [isNext , setIsNext] = useState(false)
     const [isPrev , setIsPrev] = useState(false)
-    const selectedModule = modules.find((m) => m.id === selectedValue)
+    const selectedModule = allModules.find((m) => m.id === selectedValue)
     const {task ,setTask} = useTaskContextValue()
     const navigate = useNavigate()
 
-    function findModuleChapter(moduleId: string): chapterType | undefined {
-        if (!chapters) return undefined;
-        return chapters.find((c) => c.modules.some((m) => m.id === moduleId));
-    }
+    const currentChapterModules = useMemo(
+        () => chapters.find((c) => c.id === selectedChapterId)?.modules ?? [],
+        [chapters, selectedChapterId]
+    )
 
-    const activeChapter = findModuleChapter(selectedValue);
- 
+    useEffect(() => {
+        const chapter = chapters.find((c) => c.modules.some((m) => m.id === moduleID));
+        if (chapter) setSelectedChapterId(chapter.id);
+    }, [moduleID, chapters]);
+
     useEffect(() => {
         if (!selectedModule) return
         if (selectedModule.id === moduleID) return
         navigate({to : "/app/course/$courseID/$moduleID" , reloadDocument: true , params : {courseID : selectedModule.courseId , moduleID : selectedModule.id}})
     }, [selectedValue])
 
+    function handleChapterChange(chapterId: string) {
+        const chapter = chapters.find((c) => c.id === chapterId);
+        if (!chapter || chapter.modules.length === 0) return;
+        setSelectedChapterId(chapterId);
+        const firstModule = chapter.modules[0];
+        navigate({to : "/app/course/$courseID/$moduleID" , reloadDocument: true , params : {courseID : firstModule.courseId , moduleID : firstModule.id}})
+    }
+
     useEffect(() => {
-        const firstModule = modules[0]
-        const lastModule = modules[modules.length - 1]
+        const firstModule = allModules[0]
+        const lastModule = allModules[allModules.length - 1]
         if (task === "Quiz") {
             setIsNext(true)
             if (moduleID !== firstModule.id) setIsPrev(true)
@@ -59,29 +73,29 @@ export default function Topbar({chapters , modules , moduleID} : {chapters? : ch
         if (task === "Quiz") {
             setTask("Mission")
         } else {
-            const lastModule = modules[modules.length - 1]
+            const lastModule = allModules[allModules.length - 1]
             if (moduleID === lastModule.id) {
                 navigate({to : "/app/course"})
                 return
             }
-            const indexofCurrentModule = modules.findIndex((m) => m.id === moduleID)
-            const nextModule = modules[indexofCurrentModule + 1]
+            const indexofCurrentModule = allModules.findIndex((m) => m.id === moduleID)
+            const nextModule = allModules[indexofCurrentModule + 1]
             navigate({to : "/app/course/$courseID/$moduleID" 
-                , reloadDocument: true , params : {courseID : modules[0].courseId , moduleID : nextModule.id }
+                , reloadDocument: true , params : {courseID : allModules[0].courseId , moduleID : nextModule.id }
             })
         }
     }
     function prev() {
         if (task === "Quiz") {
-            const firstModule = modules[0]
+            const firstModule = allModules[0]
             if (moduleID === firstModule.id) {
                 navigate({to : "/app/course"})
                 return
             }
-            const indexofCurrentModule = modules.findIndex((m) => m.id === moduleID)
-            const lastModule = modules[indexofCurrentModule - 1]
+            const indexofCurrentModule = allModules.findIndex((m) => m.id === moduleID)
+            const lastModule = allModules[indexofCurrentModule - 1]
             navigate({to : "/app/course/$courseID/$moduleID" 
-                , reloadDocument: true ,  params : {courseID : modules[0].courseId , moduleID : lastModule.id }
+                , reloadDocument: true ,  params : {courseID : allModules[0].courseId , moduleID : lastModule.id }
             })
         } else {
             setTask("Quiz")
@@ -95,31 +109,36 @@ export default function Topbar({chapters , modules , moduleID} : {chapters? : ch
                 <Button onClick={prev} className='rounded-4xl px-3 absolute left-6 md:left-8'>{"<--"}</Button>
             }
             <div className='pr-15 flex flex-row gap-4'>
-                <Select value={selectedValue} onValueChange={setSelectedValue}>
+                <Select value={selectedChapterId} onValueChange={handleChapterChange}>
                     <SelectTrigger className='bg-bg2 rounded '>
-                            <SelectValue placeholder='Module'>
-                                <span className=''>{activeChapter ? `${activeChapter.title.split(":")[0]} > ${selectedModule?.title.split(":")[0]}` : selectedModule?.title.split(":")[0]}</span>
+                            <SelectValue placeholder='Chapter'>
+                                <span>{chapters.find((c) => c.id === selectedChapterId)?.title.split(":")[0]}</span>
                             </SelectValue>
                     </SelectTrigger>
                     <SelectContent className='rounded'>
-                        {chapters ? chapters.map((chapter) => (
-                            <SelectGroup key={chapter.id}>
-                                <SelectLabel className='font-semibold text-sm'>{chapter.title}</SelectLabel>
-                                {chapter.modules.map((module) => (
-                                    <SelectItem key={module.id} value={module.id} className='pl-4'>
-                                        {module.title}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        )) : (
-                            <SelectGroup className=''>
-                                {modules.map((module , index) => (
-                                    <SelectItem key={index} value={module.id} className=''>
-                                        {module.title}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        )}
+                        <SelectGroup>
+                            {chapters.map((chapter) => (
+                                <SelectItem key={chapter.id} value={chapter.id}>
+                                    {chapter.title}
+                                </SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+                <Select value={selectedValue} onValueChange={setSelectedValue}>
+                    <SelectTrigger className='bg-bg2 rounded '>
+                            <SelectValue placeholder='Module'>
+                                <span className=''>{selectedModule?.title.split(":")[0]}</span>
+                            </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className='rounded'>
+                        <SelectGroup>
+                            {currentChapterModules.map((module) => (
+                                <SelectItem key={module.id} value={module.id}>
+                                    {module.title}
+                                </SelectItem>
+                            ))}
+                        </SelectGroup>
                     </SelectContent>
                 </Select>
                 <Select  value={task} onValueChange={setTask}>
@@ -127,11 +146,11 @@ export default function Topbar({chapters , modules , moduleID} : {chapters? : ch
                             <SelectValue placeholder='Task'/>
                     </SelectTrigger>
                     <SelectContent className='rounded'>
-                        <SelectGroup className=''>
-                            <SelectItem value={"Quiz"} className=''>
+                        <SelectGroup>
+                            <SelectItem value={"Quiz"}>
                                 Quiz
                             </SelectItem>
-                            <SelectItem value={"Mission"} className=''>
+                            <SelectItem value={"Mission"}>
                                 Mission
                             </SelectItem>
                         </SelectGroup>
@@ -144,4 +163,3 @@ export default function Topbar({chapters , modules , moduleID} : {chapters? : ch
         </div>
     )
 }
-
