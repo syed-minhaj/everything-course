@@ -4,9 +4,8 @@ import { courseType } from "@/types";
 import {z} from "zod"
 import { getOtherUrl, getYoutubeTop10Result} from "./resourseURL";
 
-export const courseSchema = z.object({
-    "course_title": z.string(),
-    "intro_summary": z.string(),
+export const chapterSchema = z.object({
+    "title": z.string(),
     "modules": z.array(z.object({
         "title": z.string(),
         "conceptual_deep_dive": z.string(),
@@ -30,6 +29,12 @@ export const courseSchema = z.object({
     }))
 })
 
+export const courseSchema = z.object({
+    "course_title": z.string(),
+    "intro_summary": z.string(),
+    "chapters": z.array(chapterSchema),
+})
+
 type CourseParams = {
     topic: string;
     userContext: string;
@@ -49,17 +54,20 @@ User Request:
 - Detail Level: ${depthLevel}
 
 Directives:
-1. Variable Structure: Decide the number of modules based on the topic.
-2. Course should be large and detailed enough to cover user's goal.
-3. Detailed Content: Provide deep explanations, not just headings.
-4. Verified Links: Use Google Search to find real working URLs .
-5. Use Google Search to find REAL.
-6. For youtube video resources, call the searchYoutube tool with a relevant query. 
+1. Variable Structure: Decide the number of chapters based on the topic.
+   Each chapter should group 2-4 related modules around a common theme.
+   Course should be large and detailed enough to cover user's goal.
+2. Detailed Content: Provide deep explanations, not just headings.
+3. Verified Links: Use Google Search to find real working URLs .
+4. Use Google Search to find REAL.
+5. For youtube video resources, call the searchYoutube tool with a relevant query. 
    From the results, pick the best matching video based on title discription relevance to the module topic.
    Use the video id to set the url as: https://www.youtube.com/embed/{id}
-7. Include good mix of articles and youtube videos.
-8. Conceptual deep dives must be detailed (10 words).
-9. Modules should be named as "Module [no]: [module Title]"
+6. Include good mix of articles and youtube videos.
+7. Conceptual deep dives must be detailed (10 words).
+8. Chapters should be named as "Chapter [no]: [Chapter Title]".
+9. Modules should be named as "Module [no]: [module Title]" within each chapter.
+   Reset module numbering per chapter.
 10. Hybrid Assessment (90/10 Split):
    - PRIMARY: Practical Mission
    - SECONDARY: Quick Check (1 MCQs)
@@ -68,21 +76,26 @@ Output Format: Return valid JSON only. Schema:
 {
     "course_title": "string",
     "intro_summary": "string",
-    "modules": [
+    "chapters": [
         {
-            "title": "string",
-            "conceptual_deep_dive": "10 words explaining the core theory of this module in detail.",
-            "external_resources": { "type": "article|youtube video|podcast", "title": "string", "url": "string" }[],
-            "assessment": {
-                "primary_mission": {
-                    "title": "The main task",
-                    "instructions": "Step-by-step instructions.",
-                    "rubric": ["Criteria 1", "Criteria 2", "Criteria 3"]
-                },
-                "quick_quiz": [
-                    { "question": "string", "options": ["A", "B", "C"], "answer": "A" } // answer will be of one char 'A', 'B', 'C', 'D'
-                ]
-            }
+            "title": "Chapter 1: [Chapter Title]",
+            "modules": [
+                {
+                    "title": "Module 1: [Module Title]",
+                    "conceptual_deep_dive": "10 words explaining the core theory of this module in detail.",
+                    "external_resources": { "type": "article|youtube video|podcast", "title": "string", "url": "string" }[],
+                    "assessment": {
+                        "primary_mission": {
+                            "title": "The main task",
+                            "instructions": "Step-by-step instructions.",
+                            "rubric": ["Criteria 1", "Criteria 2", "Criteria 3"]
+                        },
+                        "quick_quiz": [
+                            { "question": "string", "options": ["A", "B", "C"], "answer": "A" } // answer will be of one char 'A', 'B', 'C', 'D'
+                        ]
+                    }
+                }
+            ]
         }
     ]
 }
@@ -133,6 +146,7 @@ async function generateGeneralCourse(params: CourseParams): Promise<courseType> 
         const course: courseType = parsed.data;
 
         type VideoRef = {
+            chapterIdx: number;
             moduleIdx: number;
             resIdx: number;
             title: string;
@@ -141,20 +155,24 @@ async function generateGeneralCourse(params: CourseParams): Promise<courseType> 
 
         const searchPromises: Promise<VideoRef>[] = [];
 
-        for (let moduleIdx = 0; moduleIdx < course.modules.length; moduleIdx++) {
-            const module = course.modules[moduleIdx];
-            for (let resIdx = 0; resIdx < module.external_resources.length; resIdx++) {
-                const res = module.external_resources[resIdx];
-                if (res.type !== 'youtube video') continue;
+        for (let chapterIdx = 0; chapterIdx < course.chapters.length; chapterIdx++) {
+            const chapter = course.chapters[chapterIdx];
+            for (let moduleIdx = 0; moduleIdx < chapter.modules.length; moduleIdx++) {
+                const module = chapter.modules[moduleIdx];
+                for (let resIdx = 0; resIdx < module.external_resources.length; resIdx++) {
+                    const res = module.external_resources[resIdx];
+                    if (res.type !== 'youtube video') continue;
 
-                searchPromises.push(
-                    getYoutubeTop10Result({ title: res.title }).then((results) => ({
-                        moduleIdx,
-                        resIdx,
-                        title: res.title,
-                        results,
-                    }))
-                );
+                    searchPromises.push(
+                        getYoutubeTop10Result({ title: res.title }).then((results) => ({
+                            chapterIdx,
+                            moduleIdx,
+                            resIdx,
+                            title: res.title,
+                            results,
+                        }))
+                    );
+                }
             }
         }
 
@@ -170,6 +188,7 @@ async function generateGeneralCourse(params: CourseParams): Promise<courseType> 
             Search Results:
             ${JSON.stringify(
                 allSearchResults.map((s) => ({
+                    chapterIdx: s.chapterIdx,
                     moduleIdx: s.moduleIdx,
                     resIdx: s.resIdx,
                     originalTitle: s.title,
@@ -179,9 +198,9 @@ async function generateGeneralCourse(params: CourseParams): Promise<courseType> 
                 2
             )}
 
-            Return a JSON array only. Each item: { "moduleIdx": number, "resIdx": number, "id": string, "title": string }
+            Return a JSON array only. Each item: { "chapterIdx": number, "moduleIdx": number, "resIdx": number, "id": string, "title": string }
             So your return type should be: 
-            {"moduleIdx": number, "resIdx": number, "id": string, "title": string}[]
+            {"chapterIdx": number, "moduleIdx": number, "resIdx": number, "id": string, "title": string}[]
             No extra commentary.
             `;
 
@@ -193,28 +212,30 @@ async function generateGeneralCourse(params: CourseParams): Promise<courseType> 
 
         if (!selectionResponse.text) throw new Error('No selection response text');
 
-        const selections: { moduleIdx: number; resIdx: number; id: string; title: string }[] =
+        const selections: { chapterIdx: number; moduleIdx: number; resIdx: number; id: string; title: string }[] =
             safeParseJson(selectionResponse.text);
 
         for (const sel of selections) {
-            const res = course.modules[sel.moduleIdx].external_resources[sel.resIdx];
+            const res = course.chapters[sel.chapterIdx].modules[sel.moduleIdx].external_resources[sel.resIdx];
             res.title = sel.title;
             res.url = `https://www.youtube.com/embed/${sel.id}`;
         }
 
         await Promise.all(
-            course.modules.map(async (module) => {
-                const validatedResources = [];
-                for (const res of module.external_resources) {
-                    if (res.type !== 'youtube video') {
-                        const otherRes = await getOtherUrl({ url: res.url });
-                        if (!otherRes) continue;
-                        res.url = otherRes;
+            course.chapters.flatMap((chapter) =>
+                chapter.modules.map(async (module) => {
+                    const validatedResources = [];
+                    for (const res of module.external_resources) {
+                        if (res.type !== 'youtube video') {
+                            const otherRes = await getOtherUrl({ url: res.url });
+                            if (!otherRes) continue;
+                            res.url = otherRes;
+                        }
+                        validatedResources.push(res);
                     }
-                    validatedResources.push(res);
-                }
-                module.external_resources = validatedResources;
-            })
+                    module.external_resources = validatedResources;
+                })
+            )
         );
 
         return course;
