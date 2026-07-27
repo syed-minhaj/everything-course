@@ -2,7 +2,7 @@ import { db } from '@/lib/drizzle'
 import { createFileRoute } from '@tanstack/react-router'
 import { courses, chapters, modules } from 'db/schema'
 import CoursePreview, { CourseSkeleton } from './components/-coursePreview'
-import { count, eq , and, sql , desc} from 'drizzle-orm'
+import { count, countDistinct, eq , and, sql , desc} from 'drizzle-orm'
 import { createServerFn } from '@tanstack/react-start'
 import { useEffect, useRef } from 'react'
 import {useInfiniteQuery} from "@tanstack/react-query"
@@ -30,7 +30,7 @@ const getCourses = createServerFn()
                 courseTitle: courses.courseTitle,
                 introSummary: courses.introSummary,
                 no_of_modules: count(modules.id),
-                no_of_chapters: count(chapters.id),
+                no_of_chapters: countDistinct(chapters.id),
             })
             .from(courses)
             .where(
