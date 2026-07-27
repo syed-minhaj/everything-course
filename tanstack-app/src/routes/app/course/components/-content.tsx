@@ -1,22 +1,31 @@
 import Resourse from "./-resourse";
 import { Suspense } from "react";
 
-type typeCourse = {
+type typeChapter = {
     id: string;
-    courseTitle: string;
-    introSummary: string;
+    courseId: string;
+    title: string;
+    order: number;
     modules: {
         id: string;
         courseId: string;
+        chapterId: string | null;
         title: string;
         conceptualDeepDive: string;
     }[];
 }
 
+type typeCourse = {
+    id: string;
+    courseTitle: string;
+    introSummary: string;
+    chapters: typeChapter[];
+}
+
 
 export default function Content({moduleID , course} : {moduleID : string , course : typeCourse}) {
     
-    const module = course.modules.find((m) => m.id === moduleID)
+    const module = course.chapters.flatMap((c) => c.modules).find((m) => m.id === moduleID)
     if (!module) {
         return <div>Module Not Found</div>
     }

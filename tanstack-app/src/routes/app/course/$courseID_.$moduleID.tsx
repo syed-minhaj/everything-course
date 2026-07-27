@@ -17,7 +17,12 @@ const getCourse = createServerFn().inputValidator(z.string()).handler(async ({ d
     let course = await db.query.courses.findFirst({
         where: (courses , {eq}) => eq(courses.id , data),
         with : {
-            modules : true,
+            chapters : {
+                orderBy: (chapters, { asc }) => [asc(chapters.order)],
+                with : {
+                    modules : true
+                }
+            },
             student : {
                 columns : {userId : true}
             }
@@ -57,6 +62,7 @@ export const Route = createFileRoute('/app/course/$courseID_/$moduleID')({
 function RouteComponent() {
     const course = Route.useLoaderData();
     const { moduleID} = Route.useParams() 
+    const allModules = course.chapters.flatMap((c) => c.modules);
 
     const isDesktop = useMediaQuery({minWidth : 1224})
     const isMobile = useMediaQuery({maxWidth : 1224})
@@ -67,7 +73,7 @@ function RouteComponent() {
     return (
         <div className='flex flex-col  bg-bg1 flex-1 overflow-scroll  ' style={{scrollbarWidth : "none"}}>
             <TaskContextProvider>
-                <Topbar modules={course.modules} moduleID={moduleID} />
+                <Topbar chapters={course.chapters} modules={allModules} moduleID={moduleID} />
                 <Separator className=" bg-black/50" />
                 {isDesktop && 
                     <ResizablePanelGroup direction="horizontal" className='flex flex-row h-[calc(100%-(48px+8px))] '>

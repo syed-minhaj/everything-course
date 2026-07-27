@@ -31,16 +31,31 @@ export const courses = pgTable("courses", {
     `),
 ]);
 
+/* ================= CHAPTER ================= */
+export const chapters = pgTable("chapters", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    courseId: text("course_id")
+        .references(() => courses.id, { onDelete: "cascade" })
+        .notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    order: integer("order").notNull(),
+}, (table) => [
+    index("chapter_courseId_idx").on(table.courseId),
+]);
+
 /* ================= MODULE ================= */
 export const modules = pgTable("modules", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     courseId: text("course_id")
         .references(() => courses.id , { onDelete: "cascade" })
         .notNull(),
+    chapterId: text("chapter_id")
+        .references(() => chapters.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 255 }).notNull(),
     conceptualDeepDive: text("conceptual_deep_dive").notNull(),
 } , (table) => [
     index("module_courseId_idx").on(table.courseId),
+    index("module_chapterId_idx").on(table.chapterId),
     index("module_title_idx").on(table.title),
 ]);
 
@@ -108,6 +123,7 @@ export const userToPrimaryMissionsPassed = pgTable("user_to_primary_missions_pas
 /* ================= RELATIONS ================= */
 export const courseRelations = relations(courses, ({ many , one}) => ({
     modules: many(modules),
+    chapters: many(chapters),
     creator: one(user, {
         fields: [courses.createrId],
         references: [user.id],
@@ -120,9 +136,21 @@ export const moduleRelations = relations(modules, ({ many, one }) => ({
         fields: [modules.courseId],
         references: [courses.id],
     }),
+    chapter: one(chapters, {
+        fields: [modules.chapterId],
+        references: [chapters.id],
+    }),
     resources: many(externalResources),
     missions: many(primaryMissions),
     quizzes: many(quickQuizzes),
+}));
+
+export const chapterRelations = relations(chapters, ({ many, one }) => ({
+    course: one(courses, {
+        fields: [chapters.courseId],
+        references: [courses.id],
+    }),
+    modules: many(modules),
 }));
 
 export const quickQuizzesRelations = relations(quickQuizzes, ({ one, many }) => ({

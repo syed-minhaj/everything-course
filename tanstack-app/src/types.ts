@@ -7,13 +7,22 @@ type courseTypeDB =   {
     id: string;
     courseTitle: string;
     introSummary: string;
+    chapters: chapterType[];
+}
+
+type chapterType = {
+    id: string;
+    courseId: string;
+    title: string;
+    order: number;
     modules: moduleType[];
 }
 
 type moduleType = {
     id: string;
     title: string;
-    courseId: number;
+    courseId: string;
+    chapterId: string | null;
     conceptualDeepDive: string;
     resources: resourceType[];
     missions: missionType[];
@@ -44,4 +53,4 @@ type resourceType = {
     url: string;
 }
 
-export type {courseType , courseTypeDB , moduleType , quizeType , missionType , resourceType}
+export type {courseType , courseTypeDB , chapterType , moduleType , quizeType , missionType , resourceType}
