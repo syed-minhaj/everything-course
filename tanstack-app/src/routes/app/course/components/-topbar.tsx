@@ -19,7 +19,7 @@ type chapterType = {
     modules: moduleType[];
 }
 
-export default function Topbar({chapters , moduleID} : {chapters : chapterType[] , moduleID : string}) {
+export default function Topbar({chapters , moduleID , showTask = true} : {chapters : chapterType[] , moduleID : string , showTask?: boolean}) {
 
     const allModules = useMemo(() => chapters.flatMap((c) => c.modules), [chapters]);
 
@@ -141,6 +141,7 @@ export default function Topbar({chapters , moduleID} : {chapters : chapterType[]
                         </SelectGroup>
                     </SelectContent>
                 </Select>
+                {showTask && (
                 <Select  value={task} onValueChange={setTask}>
                     <SelectTrigger className='bg-bg2 rounded '>
                             <SelectValue placeholder='Task'/>
@@ -156,6 +157,7 @@ export default function Topbar({chapters , moduleID} : {chapters : chapterType[]
                         </SelectGroup>
                     </SelectContent>
                 </Select>
+                )}
             </div>
             {isNext && 
                 <Button onClick={next} className='rounded-4xl px-3 absolute right-6 nd:right-8'>{"-->"}</Button>

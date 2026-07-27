@@ -1,4 +1,4 @@
-import { TaskContextProvider } from '@/components/taskContextProvider'
+import { TaskContextProvider, useTaskContextValue } from '@/components/taskContextProvider'
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import {z} from "zod";
@@ -8,6 +8,7 @@ import Task from './components/-task'
 import Content from './components/-content';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import Topbar from './components/-topbar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectGroup, SelectValue } from '@/components/ui/select'
 import { getRequestHeaders } from '@tanstack/react-start-server';
 import { auth } from '@/lib/auth';
 import { useMediaQuery } from 'react-responsive'
@@ -59,6 +60,28 @@ export const Route = createFileRoute('/app/course/$courseID_/$moduleID')({
     loader: async ({ params }) => await getCourse({ data : params.courseID }),
 })
 
+function MobileViewSelect({view, setView}: {view: "content" | "Task", setView: (v: "content" | "Task") => void}) {
+    const {task , setTask} = useTaskContextValue()
+
+    return (
+        <div className='flex flex-row items-center justify-center gap-2 mx-auto my-2'>
+            <SetView view={view} setView={setView} />
+            <Separator orientation='vertical' className='h-6 bg-black/50' />
+            <Select value={task} onValueChange={setTask}>
+                <SelectTrigger className='bg-bg2 rounded w-fit'>
+                    <SelectValue placeholder='Task'/>
+                </SelectTrigger>
+                <SelectContent className='rounded'>
+                    <SelectGroup>
+                        <SelectItem value={"Quiz"}>Quiz</SelectItem>
+                        <SelectItem value={"Mission"}>Mission</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
+    )
+}
+
 function RouteComponent() {
     const course = Route.useLoaderData();
     const { moduleID} = Route.useParams() 
@@ -67,12 +90,10 @@ function RouteComponent() {
     const isMobile = useMediaQuery({maxWidth : 1224})
     const [view , setView] = useState<"content"|"Task">("content")
 
-    
-
     return (
         <div className='flex flex-col  bg-bg1 flex-1 overflow-scroll  ' style={{scrollbarWidth : "none"}}>
             <TaskContextProvider>
-                <Topbar chapters={course.chapters} moduleID={moduleID} />
+                <Topbar chapters={course.chapters} moduleID={moduleID} showTask={!isMobile} />
                 <Separator className=" bg-black/50" />
                 {isDesktop && 
                     <ResizablePanelGroup direction="horizontal" className='flex flex-row h-[calc(100%-(48px+8px))] '>
@@ -93,7 +114,7 @@ function RouteComponent() {
                 }   
                 {isMobile &&
                     <>
-                        <SetView view={view} setView={setView} />
+                        <MobileViewSelect view={view} setView={setView} />
                         <Separator className=" bg-black/50" />
                         {view == "content" ? 
                             <Content moduleID={moduleID} course={course}/>
